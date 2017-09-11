@@ -269,6 +269,7 @@ class Config(object):
         Config.fakechroot_so = os.getenv("UDOCKER_FAKECHROOT_SO",
                                          Config.fakechroot_so)
         Config.tmpdir = os.getenv("UDOCKER_TMP", Config.tmpdir)
+        Config.keystore = os.getenv("UDOCKER_KEYSTORE", Config.keystore)
 
     def _read_config(self, config_file):
         """Interpret config file content"""
@@ -776,6 +777,8 @@ class FileUtil(object):
 
     def getdata(self, mode="rb"):
         """Read file content to a buffer"""
+        if not self.filename:
+            return ""
         try:
             filep = open(self.filename, mode)
         except (IOError, OSError, TypeError):
@@ -787,6 +790,8 @@ class FileUtil(object):
 
     def putdata(self, buf, mode="wb"):
         """Write buffer to file"""
+        if not self.filename:
+            return ""
         try:
             filep = open(self.filename, mode)
         except (IOError, OSError, TypeError):
@@ -2102,10 +2107,6 @@ class ExecutionEngineCommon(object):
 
         exec_path = self._check_executable()
 
-#        exec_path = self._check_executable()
-#        if not (self._check_paths() and exec_path):
-#            return ""
-
         return exec_path
 
 
@@ -3049,7 +3050,7 @@ class LocalRepository(object):
                 os.makedirs(self.bindir)
             if not os.path.exists(self.libdir):
                 os.makedirs(self.libdir)
-            if not os.path.exists(self.homedir):
+            if not (Config.keystore.startswith("/") or os.path.exists(self.homedir)):
                 os.makedirs(self.homedir)
         except(IOError, OSError):
             return False
@@ -5634,7 +5635,7 @@ class CmdParser(object):
         step = 1
         for arg in argv[1:]:
             if step == 1:
-                if arg[0] in string.letters:
+                if arg[0] in string.ascii_letters:
                     self._argv_split['CMD'] = arg
                     step = 2
                 else:
@@ -5797,9 +5798,6 @@ class Main(object):
             Msg().out("Info: creating repo: " + Config.topdir, l=Msg.INF)
             self.localrepo.create_repo()
         self.udocker = Udocker(self.localrepo)
-#        status = UdockerTools(self.localrepo).install()
-#        if status is not None and not status:
-#            Msg().err("Error: install of udockertools failed")
 
     def execute(self):
         """Command parsing and selection"""

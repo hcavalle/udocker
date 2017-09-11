@@ -1,9 +1,13 @@
-udocker (1.1.0) - EXPERIMENTAL
+udocker (1.1.0)
 
   * support image names prefixed by registry similarly to docker 
   * add execution engine selection logic
   * add fr execution engine based on shared library interception
   * add rc execution engine based on rootless namespaces
+  * add environment variable UDOCKER_KEYSTORE
+    - closes: #75
+  * prevent creation of .udocker when UDOCKER_KEYSTORE is used
+    - closes: #75
 
 udocker (1.0.3)
 

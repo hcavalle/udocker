@@ -193,10 +193,13 @@ under $HOME/.udocker this directory will contain:
 
 The location of the udocker directory can be changed via environment variables.
 
- * UDOCKER_DIR : change the root directory of udocker usually $HOME/.udocker
- * UDOCKER_BIN : change the location of udocker related executables
- * UDOCKER_LIB : change the location of udocker related libraries
- * UDOCKER_CONTAINERS : change the location of container directory trees (not images)
+ * UDOCKER_DIR : root directory of udocker usually $HOME/.udocker
+ * UDOCKER_BIN : location of udocker related executables
+ * UDOCKER_LIB : location of udocker related libraries
+ * UDOCKER_CONTAINERS : location of container directory trees (not images)
+ * UDOCKER_KEYSTORE : location of keystore for repository login/logout
+ * UDOCKER_TMP : location of temporary directory
+ * UDOCKER_TARBALL : location of installation tarball (file of URL)
 
 The docker index and registry and be overrided via environment variables.
 
