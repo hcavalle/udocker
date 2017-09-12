@@ -100,7 +100,7 @@ rm -rf %{buildroot}
 %doc go/src/github.com/opencontainers/runc/LICENSE go/src/github.com/opencontainers/runc/README.md go/src/github.com/opencontainers/runc/NOTICE
 
 %changelog
-* Thu Apr 27 2017 udocker maintainer <udocker@lip.pt> 1.1.0-1
+* Thu Sep 12 2017 udocker maintainer <udocker@lip.pt> 1.1.0-1
 - Initial rpm package version
 
 RCENG_SPEC

@@ -98,6 +98,13 @@ rm -rf %{buildroot}
 %doc %{_mandir}/man1/udocker.1*
 
 %changelog
+* Tue Sep 12 2017 udocker maintainer <udocker@lip.pt> 1.1.0-1
+- Support image names prefixed by registry similarly to docker
+- Add execution engine selection logic
+- Add fr execution engine based on shared library interception
+- Add rc execution engine based on rootless namespaces
+- Add environment variable UDOCKER_KEYSTORE
+- Prevent creation of .udocker when UDOCKER_KEYSTORE is used
 * Wed Mar 22 2017 udocker maintainer <udocker@lip.pt> 1.0.3-1 
 - Support for import containers in newer Docker format
 - Restructuring to support additional execution engines

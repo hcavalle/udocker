@@ -68,7 +68,7 @@ udocker-rceng (1.1.0-1) trusty; urgency=low
 
   * Initial debian package
 
- -- $DEBFULLNAME <$DEBEMAIL>  Thu, 27 Apr 2017 21:12:00 +0000
+ -- $DEBFULLNAME <$DEBEMAIL>  Tue, 12 Sep 2017 00:28:00 +0000
 M_CHANGELOG
 }
 
