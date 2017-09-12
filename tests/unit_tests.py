@@ -83,6 +83,55 @@ def is_writable_file(obj):
         return True
 
 
+class UprocessTestCase(unittest.TestCase):
+    """Test case for the Uprocess class"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup test"""
+        set_env()
+
+    @mock.patch('udocker.subprocess.Popen')
+    def test_01__check_output(self, mock_popen):
+        """Test _check_output()"""
+        mock_popen.return_value.communicate.return_value = ("OUTPUT", None)
+        mock_popen.return_value.poll.return_value = 0
+        uproc = udocker.Uprocess()
+        status = uproc._check_output("CMD")
+        self.assertEqual(status, "OUTPUT")
+        #
+        mock_popen.return_value.communicate.return_value = ("OUTPUT", None)
+        mock_popen.return_value.poll.return_value = 1
+        uproc = udocker.Uprocess()
+        self.assertRaises(subprocess.CalledProcessError,
+                          uproc._check_output, "CMD")
+
+    @mock.patch('udocker.Uprocess._check_output')
+    @mock.patch('udocker.subprocess.check_output')
+    def test_02_check_output(self, mock_subp_chkout, mock_uproc_chkout):
+        """test check_output()"""
+        uproc = udocker.Uprocess()
+        uproc.check_output("CMD")
+        udocker.PY_VER = "%d.%d" % (sys.version_info[0], sys.version_info[1])
+        if udocker.PY_VER >= "2.7":
+            self.assertTrue(mock_subp_chkout.called)
+        else:
+            self.assertTrue(mock_uproc_chkout.called)
+
+    @mock.patch('udocker.Uprocess.check_output')
+    def test_03_get_output(self, mock_uproc_chkout):
+        """test get_output()"""
+        mock_uproc_chkout.return_value = "OUTPUT"
+        uproc = udocker.Uprocess()
+        self.assertEqual("OUTPUT", uproc.get_output("CMD"))
+
+    def test_04_get_output(self):
+        """test get_output()"""
+        uproc = udocker.Uprocess()
+        self.assertRaises(subprocess.CalledProcessError,
+                          uproc.get_output("/bin/false"))
+
+
 class ConfigTestCase(unittest.TestCase):
     """Test case for the udocker configuration"""
 
