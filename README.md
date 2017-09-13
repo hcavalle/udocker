@@ -12,7 +12,7 @@ udocker
 =======
 A basic user tool to execute simple docker containers in user space
 without requiring root privileges. Enables basic download and execution
-of docker containers by non-privileged users in Linux systems were docker
+of docker containers by non-privileged users in Linux systems where docker
 is not available. It can be used to access and execute the content of
 docker containers in Linux batch systems and interactive clusters that
 are managed by other entities such as grid infrastructures or externaly
@@ -35,8 +35,8 @@ udocker does not make use of docker nor requires its installation.
 
 udocker "executes" the containers by simply providing a chroot like
 environment over the extracted container. The current implementation
-uses two different approaches using PRoot or fakechroot to mimic 
-chroot without requiring privileges.
+supports different methods to mimic chroot and enable execution of 
+containers without requiring privileges under a chroot like environment.
 
 ## Limitations
 Since root privileges are not involved any operation that really
