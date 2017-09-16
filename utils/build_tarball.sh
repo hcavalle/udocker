@@ -19,7 +19,9 @@ sanity_check()
 
 udocker_version()
 {
-    grep "^__version__" "$REPO_DIR/udocker.py" | cut '-d"' -f2
+    $REPO_DIR/utils/info.py | grep "udocker version:" | cut -f3- '-d '
+    # remove candidate version extension
+    # $REPO_DIR/utils/info.py | grep "udocker version:" | cut -f3- '-d ' | cut -f1 '-d-'
 }
 
 get_proot_static() 
@@ -93,6 +95,22 @@ patch_proot_source2()
     patch < event.patch
 }
 
+patch_proot_source3()
+{
+    echo "patch_proot_source3 : $1"
+    local PROOT_SOURCE_DIR="$1"
+
+    cd "$PROOT_SOURCE_DIR/src/path"
+
+    if [ -e "temp.patch" ] ; then
+        echo "patch proot source3 already applied: $PROOT_SOURCE_DIR/src/path/temp.patch"
+        return
+    fi
+
+    cp ${utils_dir}/proot_temp.patch temp.patch
+    patch < temp.patch
+}
+
 prepare_patchelf_source()
 {
     echo "prepare_patchelf_source : $1"
@@ -105,7 +123,7 @@ prepare_patchelf_source()
     fi
 
     # tag for 0.10 not yet in github getting latest
-    git clone --depth=1 https://github.com/NixOS/patchelf.git
+    git clone --depth=1 --branch=0.9 https://github.com/NixOS/patchelf.git
     /bin/mv patchelf "$PATCHELF_SOURCE_DIR"
 }
 
@@ -121,7 +139,7 @@ patch_patchelf_source1()
         return
     fi
 
-    cp ${utils_dir}/patchelf_make.patch makefile.am.patch
+    cp ${utils_dir}/patchelf_make_static.patch makefile.am.patch
     patch -p1 < makefile.am.patch
 }
 
@@ -1110,7 +1128,7 @@ REPO_DIR="$(dirname $utils_dir)"
 
 sanity_check
 
-BUILD_DIR=${HOME}/udocker-fr-build
+BUILD_DIR=${HOME}/udocker-build
 S_PROOT_DIR="${BUILD_DIR}/proot-static-build/static"
 S_PROOT_PACKAGES_DIR="${BUILD_DIR}/proot-static-build/packages"
 PACKAGE_DIR="${BUILD_DIR}/package"
@@ -1131,6 +1149,7 @@ addto_package_other
 prepare_proot_source "${BUILD_DIR}/proot-source-x86"
 patch_proot_source1 "${BUILD_DIR}/proot-source-x86"
 patch_proot_source2 "${BUILD_DIR}/proot-source-x86"
+patch_proot_source3 "${BUILD_DIR}/proot-source-x86"
 #
 fedora25_setup "i386"
 fedora25_build_proot "i386" "${BUILD_DIR}/proot-source-x86"
@@ -1142,6 +1161,7 @@ fedora25_build_proot "i386" "${BUILD_DIR}/proot-source-x86"
 prepare_proot_source "${BUILD_DIR}/proot-source-x86_64"
 patch_proot_source1 "${BUILD_DIR}/proot-source-x86_64"
 patch_proot_source2 "${BUILD_DIR}/proot-source-x86_64"
+patch_proot_source3 "${BUILD_DIR}/proot-source-x86_64"
 prepare_patchelf_source "${BUILD_DIR}/patchelf-source-x86_64"
 patch_patchelf_source1 "${BUILD_DIR}/patchelf-source-x86_64"
 patch_patchelf_source2 "${BUILD_DIR}/patchelf-source-x86_64"

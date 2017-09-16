@@ -21,7 +21,7 @@ setup_env()
 
 udocker_version()
 {
-    grep "^__version__" "$REPO_DIR/udocker.py" | cut '-d"' -f2 
+    $REPO_DIR/utils/info.py | grep "udocker version:" | cut -f3- '-d ' | cut -f1 '-d-'
 }
 
 patch_proot_source2()
@@ -40,6 +40,22 @@ patch_proot_source2()
     popd
 }
 
+patch_proot_source3()
+{
+    echo "patch_proot_source3"
+
+    pushd "$TMP_DIR/$BASE_DIR-${VERSION}/src/path"
+
+    if [ -e "temp.patch" ] ; then
+        echo "patch proot source3 already applied: $PWD/temp.patch"
+        return
+    fi
+
+    cp ${utils_dir}/proot_temp.patch temp.patch
+    patch < temp.patch
+    popd
+}
+
 create_source_tarball()
 {
     /bin/rm $SOURCE_TARBALL 2> /dev/null
@@ -48,6 +64,7 @@ create_source_tarball()
     git clone --branch v5.1.0 --depth=1 https://github.com/proot-me/PRoot
     /bin/mv PRoot ${BASE_DIR}-${VERSION}
     patch_proot_source2
+    patch_proot_source3
     tar czvf $SOURCE_TARBALL ${BASE_DIR}-${VERSION}
     /bin/rm -Rf $BASE_DIR ${BASE_DIR}-${VERSION}
     popd

@@ -16,12 +16,15 @@ sanity_check()
 
 setup_env()
 {
-    mkdir -p "$BUILD_DIR/udocker-rceng-${VERSION}/debian/source"
+    mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+    if [ ! -e ~/.rpmmacros ]; then
+        echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
+    fi
 }
 
 udocker_version()
 {
-    grep "^__version__" "$REPO_DIR/udocker.py" | cut '-d"' -f2 | cut '-d-' -f1
+    $REPO_DIR/utils/info.py | grep "udocker version:" | cut -f3- '-d ' | cut -f1 '-d-'
 }
 
 create_source_tarball()

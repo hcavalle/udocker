@@ -24,7 +24,7 @@ setup_env()
 
 udocker_version()
 {
-    grep "^__version__" "$REPO_DIR/udocker.py" | cut '-d"' -f2 | cut '-d-' -f1
+    $REPO_DIR/utils/info.py | grep "udocker version:" | cut -f3- '-d ' | cut -f1 '-d-'
 }
 
 create_source_tarball()
@@ -89,12 +89,12 @@ else
     RUNC="runc"
 fi
 install -m 755 -D %{_builddir}/%{name}/go/src/github.com/opencontainers/runc/runc %{buildroot}/%{_libexecdir}/udocker/\$RUNC
-echo "%{_libexecdir}/udocker/\$RUNC" > %{_builddir}/files.lst
+echo "%{_libexecdir}/udocker/\$RUNC" > %{_builddir}/%{name}/files.lst
 
 %clean
 rm -rf %{buildroot}
 
-%files -f %{_builddir}/files.lst
+%files -f %{_builddir}/%{name}/files.lst
 %defattr(-,root,root)
 
 %doc go/src/github.com/opencontainers/runc/LICENSE go/src/github.com/opencontainers/runc/README.md go/src/github.com/opencontainers/runc/NOTICE
