@@ -16,10 +16,7 @@ sanity_check()
 
 setup_env()
 {
-    mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    if [ ! -e ~/.rpmmacros ]; then
-        echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
-    fi
+    mkdir -p "$BUILD_DIR/udocker-rceng-${VERSION}/debian/source"
 }
 
 udocker_version()
@@ -122,7 +119,8 @@ export DH_VERBOSE=1
 
 .ONESHELL:
 override_dh_auto_build:
-	mkdir obj-x86_64-linux-gnu/src/github.com/opencontainers
+	echo "PWD `pwd`"
+	mkdir -p obj-x86_64-linux-gnu/src/github.com/opencontainers
 	cd obj-x86_64-linux-gnu/src/github.com/opencontainers
 	ln -s ../../../.. runc
 	cd runc
