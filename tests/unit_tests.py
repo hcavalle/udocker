@@ -303,6 +303,135 @@ class MsgTestCase(unittest.TestCase):
         sys.stderr = STDERR
 
 
+class KeyStoreTestCase(unittest.TestCase):
+    """Test KeyStore() local basic credentials storage"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup test"""
+        set_env()
+
+    def _init(self):
+        """Common variables"""
+        self.url = u'https://xxx'
+        self.email = u'user@domain'
+        self.auth = u'xxx'
+        self.credentials = {self.url: {u'email': self.email,
+                                       u'auth': self.auth}}
+
+    def test_01_init(self):
+        """Test KeyStore() constructor"""
+        kstore = udocker.KeyStore("filename")
+        self.assertEqual(kstore.keystore_file, "filename")
+
+    @mock.patch('udocker.json.load')
+    def test_02_read_all(self, mock_jload):
+        """Test KeyStore()._read_all() read credentials"""
+        self._init()
+        mock_jload.return_value = self.credentials
+        with mock.patch(BUILTINS + '.open', mock.mock_open()):
+            kstore = udocker.KeyStore("filename")
+            self.assertEqual(self.credentials, kstore._read_all())
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    def test_02_shred(self, mock_config, mock_verks):
+        """Test KeyStore()._shred() erase file content"""
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        with mock.patch(BUILTINS + '.open', mock.mock_open()):
+            kstore = udocker.KeyStore("filename")
+            self.assertFalse(kstore._shred())
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    @mock.patch('udocker.os.stat')
+    def test_03_shred(self, mock_stat, mock_config, mock_verks):
+        """Test KeyStore()._shred() erase file content"""
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        mock_stat.return_value.st_size = 123
+        with mock.patch(BUILTINS + '.open', mock.mock_open()):
+            kstore = udocker.KeyStore("filename")
+            self.assertTrue(kstore._shred())
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    @mock.patch('udocker.json.dump')
+    @mock.patch('udocker.os.umask')
+    def test_04_write_all(self, mock_umask, mock_jdump,
+                          mock_config, mock_verks):
+        """Test KeyStore()._write_all() write all credentials to file"""
+        self._init()
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        mock_umask.return_value = 077
+        mock_jdump.side_effect = IOError('json dump')
+        with mock.patch(BUILTINS + '.open', mock.mock_open()):
+            kstore = udocker.KeyStore("filename")
+            self.assertFalse(kstore._write_all(self.credentials))
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    @mock.patch('udocker.KeyStore._read_all')
+    def test_05_get(self, mock_readall, mock_config, mock_verks):
+        """Test KeyStore().get() get credential for url from file"""
+        self._init()
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        mock_readall.return_value = self.credentials
+        kstore = udocker.KeyStore("filename")
+        self.assertTrue(kstore.get(self.url))
+        self.assertFalse(kstore.get("NOT EXISTING ENTRY"))
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    @mock.patch('udocker.KeyStore._shred')
+    @mock.patch('udocker.KeyStore._write_all')
+    @mock.patch('udocker.KeyStore._read_all')
+    def test_06_put(self, mock_readall, mock_writeall, mock_shred,
+                    mock_config, mock_verks):
+        """Test KeyStore().put() put credential for url to file"""
+        self._init()
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        kstore = udocker.KeyStore("filename")
+        self.assertFalse(kstore.put("", "", ""))
+        mock_readall.return_value = dict()
+        kstore.put(self.url, self.auth, self.email)
+        mock_writeall.assert_called_once_with(self.credentials)
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    @mock.patch('udocker.KeyStore._shred')
+    @mock.patch('udocker.KeyStore._write_all')
+    @mock.patch('udocker.KeyStore._read_all')
+    def test_07_delete(self, mock_readall, mock_writeall, mock_shred,
+                       mock_config, mock_verks):
+        """Test KeyStore().delete() delete credential for url from file"""
+        self._init()
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        mock_readall.return_value = self.credentials
+        kstore = udocker.KeyStore("filename")
+        kstore.delete(self.url)
+        mock_writeall.assert_called_once_with({})
+
+    @mock.patch('udocker.Config')
+    @mock.patch('udocker.KeyStore._verify_keystore')
+    @mock.patch('udocker.os.unlink')
+    @mock.patch('udocker.KeyStore._shred')
+    def test_07_erase(self, mock_shred, mock_unlink,
+                      mock_config, mock_verks):
+        """Test KeyStore().erase() erase credentials file"""
+        self._init()
+        udocker.Config = mock_config
+        udocker.Config.tmpdir = "/tmp"
+        kstore = udocker.KeyStore("filename")
+        self.assertTrue(kstore.erase())
+        mock_unlink.assert_called_once_with("filename")
+
+
 class UniqueTestCase(unittest.TestCase):
     """Test Unique() class"""
 
@@ -579,135 +708,6 @@ class FileUtilTestCase(unittest.TestCase):
             self.assertTrue(status)
 
 
-class KeyStoreTestCase(unittest.TestCase):
-    """Test KeyStore() local basic credentials storage"""
-
-    @classmethod
-    def setUpClass(cls):
-        """Setup test"""
-        set_env()
-
-    def _init(self):
-        """Common variables"""
-        self.url = u'https://xxx'
-        self.email = u'user@domain'
-        self.auth = u'xxx'
-        self.credentials = {self.url: {u'email': self.email,
-                                       u'auth': self.auth}}
-
-    def test_01_init(self):
-        """Test KeyStore() constructor"""
-        kstore = udocker.KeyStore("filename")
-        self.assertEqual(kstore.keystore_file, "filename")
-
-    @mock.patch('udocker.json.load')
-    def test_02_read_all(self, mock_jload):
-        """Test KeyStore()._read_all() read credentials"""
-        self._init()
-        mock_jload.return_value = self.credentials
-        with mock.patch(BUILTINS + '.open', mock.mock_open()):
-            kstore = udocker.KeyStore("filename")
-            self.assertEqual(self.credentials, kstore._read_all())
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    def test_02_shred(self, mock_config, mock_verks):
-        """Test KeyStore()._shred() erase file content"""
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        with mock.patch(BUILTINS + '.open', mock.mock_open()):
-            kstore = udocker.KeyStore("filename")
-            self.assertFalse(kstore._shred())
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    @mock.patch('udocker.os.stat')
-    def test_03_shred(self, mock_stat, mock_config, mock_verks):
-        """Test KeyStore()._shred() erase file content"""
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        mock_stat.return_value.st_size = 123
-        with mock.patch(BUILTINS + '.open', mock.mock_open()):
-            kstore = udocker.KeyStore("filename")
-            self.assertTrue(kstore._shred())
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    @mock.patch('udocker.json.dump')
-    @mock.patch('udocker.os.umask')
-    def test_04_write_all(self, mock_umask, mock_jdump,
-                          mock_config, mock_verks):
-        """Test KeyStore()._write_all() write all credentials to file"""
-        self._init()
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        mock_umask.return_value = 077
-        mock_jdump.side_effect = IOError('json dump')
-        with mock.patch(BUILTINS + '.open', mock.mock_open()):
-            kstore = udocker.KeyStore("filename")
-            self.assertFalse(kstore._write_all(self.credentials))
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    @mock.patch('udocker.KeyStore._read_all')
-    def test_05_get(self, mock_readall, mock_config, mock_verks):
-        """Test KeyStore().get() get credential for url from file"""
-        self._init()
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        mock_readall.return_value = self.credentials
-        kstore = udocker.KeyStore("filename")
-        self.assertTrue(kstore.get(self.url))
-        self.assertFalse(kstore.get("NOT EXISTING ENTRY"))
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    @mock.patch('udocker.KeyStore._shred')
-    @mock.patch('udocker.KeyStore._write_all')
-    @mock.patch('udocker.KeyStore._read_all')
-    def test_06_put(self, mock_readall, mock_writeall, mock_shred,
-                    mock_config, mock_verks):
-        """Test KeyStore().put() put credential for url to file"""
-        self._init()
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        kstore = udocker.KeyStore("filename")
-        self.assertFalse(kstore.put("", "", ""))
-        mock_readall.return_value = dict()
-        kstore.put(self.url, self.auth, self.email)
-        mock_writeall.assert_called_once_with(self.credentials)
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    @mock.patch('udocker.KeyStore._shred')
-    @mock.patch('udocker.KeyStore._write_all')
-    @mock.patch('udocker.KeyStore._read_all')
-    def test_07_delete(self, mock_readall, mock_writeall, mock_shred,
-                       mock_config, mock_verks):
-        """Test KeyStore().delete() delete credential for url from file"""
-        self._init()
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        mock_readall.return_value = self.credentials
-        kstore = udocker.KeyStore("filename")
-        kstore.delete(self.url)
-        mock_writeall.assert_called_once_with({})
-
-    @mock.patch('udocker.Config')
-    @mock.patch('udocker.KeyStore._verify_keystore')
-    @mock.patch('udocker.os.unlink')
-    @mock.patch('udocker.KeyStore._shred')
-    def test_07_erase(self, mock_shred, mock_unlink,
-                      mock_config, mock_verks):
-        """Test KeyStore().erase() erase credentials file"""
-        self._init()
-        udocker.Config = mock_config
-        udocker.Config.tmpdir = "/tmp"
-        kstore = udocker.KeyStore("filename")
-        self.assertTrue(kstore.erase())
-        mock_unlink.assert_called_once_with("filename")
-
-
 class UdockerToolsTestCase(unittest.TestCase):
     """Test UdockerTools() download and setup of tools needed by udocker"""
 
@@ -884,6 +884,57 @@ class UdockerToolsTestCase(unittest.TestCase):
         mock_call.return_value = 0
         status = utools._install("tarballfile")
         self.assertTrue(status)
+
+
+class ContainerStructureTestCase(unittest.TestCase):
+    """Test ContainerStructure() Docker container structure.
+    Creation of a container filesystem from a repository image.
+    Access to container metadata.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup test"""
+        set_env()
+
+    @mock.patch('udocker.LocalRepository')
+    def test_01_init(self, mock_local):
+        ucs = udocker.ContainerStructure(mock_local)
+        self.assertEqual(ucs.localrepo, mock_local)
+        self.assertEqual(ucs.container_id, None)
+        self.assertEqual(ucs.tag, "")
+        self.assertEqual(ucs.imagerepo, "")
+
+    @mock.patch('udocker.LocalRepository')
+    def test_02_get_container_attr(self, mock_local):
+        ucs = udocker.ContainerStructure(mock_local)
+        (container_dir, container_json) = ucs.get_container_attr()
+        if udocker.Config.location:
+            self.assertEqual(container_dir, "")
+            self.assertEqual(container_json, [])
+        else:
+            if not container_dir or not container_json:
+                self.assertFalse(container_dir)
+                self.assertFalse(container_json)
+
+    @mock.patch('udocker.LocalRepository')
+    def test_03_create(self, mock_local):
+        pass
+
+    def test_04__apply_whiteouts(self):
+        pass
+
+    def test_05__untar_layers(self):
+        pass
+
+    def test_06_get_container_meta(self):
+        pass
+
+    def test_07__dict_to_str(self):
+        pass
+
+    def test_08__dict_to_list(self):
+        pass
 
 
 class LocalRepositoryTestCase(unittest.TestCase):
@@ -1639,7 +1690,7 @@ class GetURLTestCase(unittest.TestCase):
     @mock.patch('udocker.Msg')
     @mock.patch('udocker.GetURLexeCurl')
     @mock.patch('udocker.GetURLpyCurl')
-    def test_02_select_implementation(self, mock_gupycurl,
+    def test_02__select_implementation(self, mock_gupycurl,
                                       mock_guexecurl, mock_msg):
         """Test GetURL()._select_implementation()"""
         self._init()
@@ -1727,6 +1778,123 @@ class GetURLTestCase(unittest.TestCase):
         geturl._geturl.get = self._get
         self.assertEqual(geturl.post("http://host",
                                      {"DATA": 1, }), "http://host")
+
+
+class DockerIoAPITestCase(unittest.TestCase):
+    """Test DockerIoAPITest() Class to encapsulate
+    the access to the Docker Hub service.
+    Allows to search and download images from Docker Hub."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup test"""
+        set_env()
+
+    def _init(self):
+        """Configure variables"""
+        pass
+
+    def test_01__init__(self):
+        pass
+
+    def test_02_set_proxy(self):
+        pass
+
+    def test_03_set_registry(self):
+        pass
+
+    def test_04_set_index(self):
+        pass
+
+    def test_05_is_repo_name(self):
+        pass
+
+    def test_06__is_docker_registry(self):
+        pass
+
+    def test_07__get_url(self):
+        pass
+
+    def test_08_get_file(self):
+        pass
+
+    def test_09__split_fields(self):
+        pass
+
+    def test_10__get_v1_repo(self):
+        pass
+
+    def test_11__get_v1_auth(self):
+        pass
+
+    def test_12_get_v1_image_tags(self):
+        pass
+
+    def test_13_get_v1_image_tag(self):
+        pass
+
+    def test_14_get_v1_image_ancestry(self):
+        pass
+
+    def test_15_get_v1_image_json(self):
+        pass
+
+    def test_16_get_v1_image_layer(self):
+        pass
+
+    def test_17_get_v1_layers_all(self):
+        pass
+
+    def test_18__get_v2_auth(self):
+        pass
+
+    def test_19_get_v2_login_token(self):
+        pass
+
+    def test_20_set_v2_login_token(self):
+        pass
+
+    def test_21_is_v2(self):
+        pass
+
+    def test_22_get_v2_image_manifest(self):
+        pass
+
+    def test_23_get_v2_image_layer(self):
+        pass
+
+    def test_24_get_v2_layers_all(self):
+        pass
+
+    def test_25_get_v2(self):
+        pass
+
+    def test_26__get_v1_id_from_tags(self):
+        pass
+
+    def test_27__get_v1_id_from_images(self):
+        pass
+
+    def test_28_get_v1(self):
+        pass
+
+    def test_29__parse_imagerepo(self):
+        pass
+
+    def test_30_get(self):
+        pass
+
+    def test_31_search_init(self):
+        pass
+
+    def test_32_search_get_page_v1(self):
+        pass
+
+    def test_33_catalog_get_page_v2(self):
+        pass
+
+    def test_34_search_get_page(self):
+        pass
 
 
 class ChkSUMTestCase(unittest.TestCase):
@@ -1969,6 +2137,7 @@ class NixAuthenticationTestCase(unittest.TestCase):
         self.assertFalse(mock_host.called)
         self.assertTrue(mock_file.called)
 
+
 class FileBind(unittest.TestCase):
     """Test FileBind() """
 
@@ -1984,37 +2153,39 @@ class FileBind(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_01_init(self, mock_local):
         """Test FileBind()"""
-        return True
+        # container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
+        # fb = udocker.FileBind(mock_local, container_id)
+        # self.assertEqual(fb.host_bind_dir, None)
+        pass
 
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.isdir')
     def test_02_setup(self, mock_local, mock_isdir):
         """Test FileBind().setup()"""
-        #container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
-        #status = udocker.FileBind(mock_local, container_id)
-        #mock_isdir.return_value = False
-        #self.assertFalse(status)
-        return True
+        #
+        # status = udocker.FileBind(mock_local, "CONTAINER_ID").setup()
+        # self.assertFalse(status)
+        pass
 
     @mock.patch('udocker.LocalRepository')
     def test_03_restore(self, mock_local):
         """Test FileBind().restore()"""
-        return True
+        pass
 
     @mock.patch('udocker.LocalRepository')
     def test_04_start(self, mock_local):
         """Test FileBind().start()"""
-        return True
+        pass
 
     @mock.patch('udocker.LocalRepository')
     def test_05_finish(self, mock_local):
         """Test FileBind().finish()"""
-        return True
+        pass
 
     @mock.patch('udocker.LocalRepository')
     def test_06_add(self, mock_local):
         """Test FileBind().add()"""
-        return True
+        pass
 
 
 class ExecutionEngineCommon(unittest.TestCase):
@@ -2928,6 +3099,11 @@ class ContainerStructure(unittest.TestCase):
 class DockerLocalFileAPITestCase(unittest.TestCase):
     """Test DockerLocalFileAPI() manipulate Docker images"""
 
+    @classmethod
+    def setUpClass(cls):
+        """Setup test"""
+        set_env()
+
     def _init(self):
         """Configure variables"""
         udocker.Config = mock.MagicMock()
@@ -2942,11 +3118,6 @@ class DockerLocalFileAPITestCase(unittest.TestCase):
         udocker.Config.keystore = "KEYSTORE"
         udocker.Config.return_value.osversion.return_value = "OSVERSION"
         udocker.Config.return_value.arch.return_value = "ARCH"
-
-    @classmethod
-    def setUpClass(cls):
-        """Setup test"""
-        set_env()
 
     @mock.patch('udocker.LocalRepository')
     def test_01_init(self, mock_local):
