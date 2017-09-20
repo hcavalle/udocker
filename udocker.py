@@ -32,7 +32,10 @@ import grp
 import platform
 
 __author__ = "udocker@lip.pt"
-__credits__ = ["PRoot http://proot.me"]
+__credits__ = ["PRoot http://proot.me",
+               "runC https://runc.io",
+               "Fakechroot https://github.com/dex4er/fakechroot"
+              ]
 __license__ = "Licensed under the Apache License, Version 2.0"
 __version__ = "1.1.0-RC2"
 __date__ = "2017"
@@ -4474,9 +4477,7 @@ class DockerIoAPI(object):
             repo_list = json.loads(buf.getvalue())
             if repo_list["page"] == repo_list["num_pages"]:
                 self.search_ended = True
-                return []
-            else:
-                return repo_list
+            return repo_list
         except (IOError, OSError, AttributeError,
                 ValueError, TypeError):
             self.search_ended = True
