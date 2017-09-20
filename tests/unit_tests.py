@@ -1743,36 +1743,99 @@ class DockerIoAPITestCase(unittest.TestCase):
 
     def _init(self):
         """Configure variables"""
+        udocker.Config = mock.MagicMock()
+        #udocker.Config.http_proxy
+
+    @mock.patch('udocker.LocalRepository')
+    def test_01_init(self, mock_local):
+        """Test DockerIoAPI()"""
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
+        self.assertEqual(uia.index_url, udocker.Config.dockerio_index_url)
+        self.assertEqual(uia.registry_url, udocker.Config.dockerio_registry_url)
+        self.assertEqual(uia.v1_auth_header, "")
+        self.assertEqual(uia.v2_auth_header, "")
+        self.assertEqual(uia.v2_auth_token, "")
+        self.assertEqual(uia.localrepo, mock_local)
+        self.assertIsInstance(uia.curl, udocker.GetURL)
+        self.assertEqual(uia.docker_registry_domain, "docker.io")
+        self.assertEqual(uia.search_link, "")
+        self.assertTrue(uia.search_pause)
+        self.assertEqual(uia.search_page, 0)
+        self.assertEqual(uia.search_lines, 25)
+        self.assertEqual(uia.search_link, "")
+        self.assertFalse(uia.search_ended)
+
+    @mock.patch('udocker.LocalRepository')
+    def test_02_set_proxy(self, mock_local):
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
+        uia.set_proxy("socks5://user:pass@host:port")
+        self.assertEqual(uia.curl.http_proxy, "socks5://user:pass@host:port")
+
+    @mock.patch('udocker.LocalRepository')
+    def test_03_set_registry(self, mock_local):
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
+        uia.set_registry("https://registry-1.docker.io")
+        self.assertEqual(uia.registry_url, "https://registry-1.docker.io")
+
+    @mock.patch('udocker.LocalRepository')
+    def test_04_set_index(self, mock_local):
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
+        uia.set_index("https://index.docker.io/v1")
+        self.assertEqual(uia.index_url, "https://index.docker.io/v1")
+
+    @mock.patch('udocker.LocalRepository')
+    def test_05_is_repo_name(self, mock_local):
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
+        self.assertFalse(uia.is_repo_name(""))
+        self.assertFalse(uia.is_repo_name("socks5://user:pass@host:port"))
+        self.assertFalse(uia.is_repo_name("/:"))
+        self.assertTrue(uia.is_repo_name("1233/fasdfasdf:sdfasfd"))
+        self.assertTrue(uia.is_repo_name("os-cli-centos7"))
+        self.assertTrue(uia.is_repo_name("os-cli-centos7:latest"))
+        self.assertTrue(uia.is_repo_name("lipcomputing/os-cli-centos7"))
+        self.assertTrue(uia.is_repo_name("lipcomputing/os-cli-centos7:latest"))
+
+    @mock.patch('udocker.LocalRepository')
+    def test_06__is_docker_registry(self, mock_local):
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
+        uia.set_registry("https://registry-1.docker.io")
+        self.assertTrue(uia._is_docker_registry())
+        #
+        uia.set_registry("")
+        self.assertFalse(uia._is_docker_registry())
+        #
+        uia.set_registry("https://registry-1.docker.pt")
+        self.assertFalse(uia._is_docker_registry())
+        #
+        uia.set_registry("docker.io")
+        self.assertTrue(uia._is_docker_registry())
+
+    @mock.patch('udocker.LocalRepository')
+    def test_07__get_url(self, mock_local):
+        self._init()
+        #
+        uia = udocker.DockerIoAPI(mock_local)
         pass
 
-    def test_01__init__(self):
-        pass
-
-    def test_02_set_proxy(self):
-        pass
-
-    def test_03_set_registry(self):
-        pass
-
-    def test_04_set_index(self):
-        pass
-
-    def test_05_is_repo_name(self):
-        pass
-
-    def test_06__is_docker_registry(self):
-        pass
-
-    def test_07__get_url(self):
-        pass
-
-    def test_08_get_file(self):
+    def test_08__get_file(self):
         pass
 
     def test_09__split_fields(self):
         pass
 
-    def test_10__get_v1_repo(self):
+    def test_10_get_v1_repo(self):
         pass
 
     def test_11__get_v1_auth(self):
