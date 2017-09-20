@@ -28,6 +28,8 @@ import unittest
 import mock
 import os
 
+from mock.mock import self
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -884,57 +886,6 @@ class UdockerToolsTestCase(unittest.TestCase):
         mock_call.return_value = 0
         status = utools._install("tarballfile")
         self.assertTrue(status)
-
-
-class ContainerStructureTestCase(unittest.TestCase):
-    """Test ContainerStructure() Docker container structure.
-    Creation of a container filesystem from a repository image.
-    Access to container metadata.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        """Setup test"""
-        set_env()
-
-    @mock.patch('udocker.LocalRepository')
-    def test_01_init(self, mock_local):
-        ucs = udocker.ContainerStructure(mock_local)
-        self.assertEqual(ucs.localrepo, mock_local)
-        self.assertEqual(ucs.container_id, None)
-        self.assertEqual(ucs.tag, "")
-        self.assertEqual(ucs.imagerepo, "")
-
-    @mock.patch('udocker.LocalRepository')
-    def test_02_get_container_attr(self, mock_local):
-        ucs = udocker.ContainerStructure(mock_local)
-        (container_dir, container_json) = ucs.get_container_attr()
-        if udocker.Config.location:
-            self.assertEqual(container_dir, "")
-            self.assertEqual(container_json, [])
-        else:
-            if not container_dir or not container_json:
-                self.assertFalse(container_dir)
-                self.assertFalse(container_json)
-
-    @mock.patch('udocker.LocalRepository')
-    def test_03_create(self, mock_local):
-        pass
-
-    def test_04__apply_whiteouts(self):
-        pass
-
-    def test_05__untar_layers(self):
-        pass
-
-    def test_06_get_container_meta(self):
-        pass
-
-    def test_07__dict_to_str(self):
-        pass
-
-    def test_08__dict_to_list(self):
-        pass
 
 
 class LocalRepositoryTestCase(unittest.TestCase):
@@ -2138,7 +2089,7 @@ class NixAuthenticationTestCase(unittest.TestCase):
         self.assertTrue(mock_file.called)
 
 
-class FileBind(unittest.TestCase):
+class FileBindTestCase(unittest.TestCase):
     """Test FileBind() """
 
     @classmethod
@@ -2188,7 +2139,7 @@ class FileBind(unittest.TestCase):
         pass
 
 
-class ExecutionEngineCommon(unittest.TestCase):
+class ExecutionEngineCommonTestCase(unittest.TestCase):
     """Test ExecutionEngineCommon() parent class for containers execution"""
 
     @classmethod
@@ -2749,7 +2700,7 @@ class ExecutionEngineCommon(unittest.TestCase):
         self.assertEqual(status, "")
 
 
-class PRootEngine(unittest.TestCase):
+class PRootEngineTestCase(unittest.TestCase):
     """Test PRootEngine() class for containers execution"""
 
     @classmethod
@@ -2867,7 +2818,7 @@ class PRootEngine(unittest.TestCase):
         self.assertEqual(status, " -b /tmp -b /bbb")
 
 
-class ContainerStructure(unittest.TestCase):
+class ContainerStructureTestCase(unittest.TestCase):
     """Test ContainerStructure() class for containers structure"""
 
     @classmethod
