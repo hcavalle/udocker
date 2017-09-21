@@ -2203,29 +2203,101 @@ class FileBindTestCase(unittest.TestCase):
 
     def _init(self):
         """Configure variables"""
-        pass
+        self.bind_dir = "/.bind_host_files"
+        self.orig_dir = "/.bind_orig_files"
 
     @mock.patch('udocker.LocalRepository')
-    def test_01_init(self, mock_local):
+    @mock.patch('udocker.os.path.realpath')
+    def test_01_init(self, mock_realpath, mock_local):
         """Test FileBind()"""
-        # container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
-        # fb = udocker.FileBind(mock_local, container_id)
-        # self.assertEqual(fb.host_bind_dir, None)
-        pass
+
+        self._init()
+
+        container_id = "CONTAINERID"
+        mock_realpath.return_value = "/tmp"
+        fb = udocker.FileBind(mock_local, container_id)
+        self.assertEqual(fb.localrepo, mock_local)
+        self.assertEqual(fb.container_id, container_id)
+        self.assertTrue(mock_realpath.called)
+        self.assertTrue(fb.container_root, fb.container_dir + "/ROOT")
+        self.assertTrue(fb.container_bind_dir, fb.container_root + self.bind_dir)
+        self.assertTrue(fb.container_orig_dir, fb.container_dir + self.orig_dir)
+        self.assertIsNone(fb.host_bind_dir)
 
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.isdir')
-    def test_02_setup(self, mock_local, mock_isdir):
-        """Test FileBind().setup()"""
-        #
-        # status = udocker.FileBind(mock_local, "CONTAINER_ID").setup()
-        # self.assertFalse(status)
-        pass
+    @mock.patch('udocker.os.path.realpath')
+    @mock.patch.object(udocker.FileUtil, 'mkdir')
+    def test_02_setup(self, mock_mkdir, mock_realpath, mock_isdir, mock_local):
+        """Test FileBind().setup().
+        Prepare container for FileBind"""
+
+        self._init()
+
+        container_id = "CONTAINERID"
+        mock_realpath.return_value = "/tmp"
+
+        mock_isdir.return_value = True
+        fb = udocker.FileBind(mock_local, container_id)
+        status = fb.setup()
+        self.assertTrue(mock_isdir.called)
+        self.assertTrue(status)
+
+        fb = udocker.FileBind(mock_local, container_id)
+        mock_isdir.return_value = False
+        status = fb.setup()
+        self.assertTrue(mock_isdir.called)
+        self.assertTrue(mock_mkdir.called)
+        self.assertTrue(status)
+
+        fb = udocker.FileBind(mock_local, container_id)
+        mock_isdir.return_value = False
+        mock_mkdir.return_value = False
+        status = fb.setup()
+        self.assertFalse(status)
 
     @mock.patch('udocker.LocalRepository')
-    def test_03_restore(self, mock_local):
-        """Test FileBind().restore()"""
-        pass
+    @mock.patch('udocker.os.path.isdir')
+    @mock.patch('udocker.os.path.isfile')
+    @mock.patch('udocker.os.path.realpath')
+    @mock.patch('udocker.os.listdir')
+    @mock.patch('udocker.FileUtil.remove')
+    @mock.patch('udocker.FileUtil')
+    def test_03_restore(self, mock_futil, mock_furemove, mock_listdir, mock_realpath,
+                        mock_isfile, mock_isdir, mock_local):
+        """Test FileBind().restore()
+        Restore container files after FileBind"""
+
+        self._init()
+
+        container_id = "CONTAINERID"
+        mock_realpath.return_value = "/tmp"
+        mock_listdir.return_value = []
+
+        mock_isdir.return_value = False
+
+        fb = udocker.FileBind(mock_local, container_id)
+        status = fb.restore()
+        self.assertTrue(mock_isdir.called)
+        self.assertTrue(status)
+
+        mock_isdir.return_value = True
+
+        status = fb.restore()
+        self.assertTrue(mock_listdir.called)
+        #self.assertTrue(mock_futil.assert_called_with())
+        self.assertFalse(status)
+
+        mock_listdir.return_value = ["a"]
+        mock_isfile.side_effect = [False, True]
+
+        fb.restore()
+        self.assertTrue(mock_isfile.called)
+        self.assertFalse(mock_furemove.called)
+        #self.assertTrue(mock_futil.assert_called_with(self.bind_dir))
+
+        #(TODO) lalves: This is WIP
+
 
     @mock.patch('udocker.LocalRepository')
     def test_04_start(self, mock_local):
