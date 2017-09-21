@@ -1089,6 +1089,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     def test_15_iswriteable_container(self, mock_cd, mock_exists,
                                       mock_isdir, mock_access):
         """Test LocalRepository().iswriteable_container()"""
+
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
         mock_exists.return_value = False
@@ -1146,7 +1147,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
 
     @mock.patch('udocker.os.symlink')
     @mock.patch('udocker.os.path.exists')
-    def test_17_symlink(self, mock_exists, mock_symlink):
+    def test_17__symlink(self, mock_exists, mock_symlink):
         """Test LocalRepository()._symlink()"""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         mock_exists.return_value = True
@@ -1301,7 +1302,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.listdir')
     @mock.patch('udocker.FileUtil')
     @mock.patch.object(udocker.LocalRepository, '_is_tag')
-    def test_23_get_tags(self, mock_is, mock_futil,
+    def test_23__get_tags(self, mock_is, mock_futil,
                          mock_listdir, mock_isdir):
         """Test LocalRepository()._get_tags()"""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
@@ -1546,6 +1547,67 @@ class LocalRepositoryTestCase(unittest.TestCase):
             status = localrepo.load_json("/filename")
             self.assertTrue(mopen.called)
             self.assertFalse(status)
+
+
+    @mock.patch.object(udocker.LocalRepository, 'cd_container')
+    @mock.patch.object(udocker.LocalRepository, 'get_containers_list')
+    def test_31_del_container(self, mock_cdcont, mock_getcl):
+        """Test LocalRepository().del_container()"""
+
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
+
+        status = localrepo.del_container(container_id)
+        self.assertTrue(mock_cdcont.called)
+        self.assertFalse(status)
+
+        mock_cdcont.return_value = ""
+        mock_getcl.return_value = "tmp"
+        status = localrepo.del_container(container_id)
+        self.assertFalse(status)
+
+        mock_cdcont.return_value = "/tmp"
+        mock_getcl.return_value = "/tmp"
+        status = localrepo.del_container(container_id)
+        self.assertTrue(status)
+
+    @mock.patch('udocker.LocalRepository')
+    @mock.patch('udocker.os.path.exists')
+    def test_32_cd_imagerepo(self, mock_local, mock_exists):
+        """Test LocalRepository().cd_imagerepo()"""
+
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        localrepo.reposdir = "/tmp"
+        out = localrepo.cd_imagerepo("IMAGE", "TAG")
+        self.assertTrue(mock_exists.called)
+        self.assertNotEqual(out, "")
+
+    @mock.patch.object(udocker.LocalRepository, '_get_tags')
+    def test_33_get_imagerepos(self, mock_gtags):
+        """Test LocalRepository().get_imagerepos()"""
+
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        localrepo.get_imagerepos()
+        self.assertTrue(mock_gtags.called)
+
+    @mock.patch('udocker.LocalRepository')
+    @mock.patch.object(udocker.LocalRepository, 'cd_container')
+    def test_34_get_layers(self, mock_local, mock_cd):
+        """Test LocalRepository().get_layers()"""
+
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        localrepo.get_layers("IMAGE", "TAG")
+        self.assertTrue(mock_cd.called)
+
+
+    @mock.patch('udocker.LocalRepository')
+    @mock.patch.object(udocker.LocalRepository, '_load_structure')
+    def test_35_verify_image(self, mock_local, mock_lstruct):
+        """Test LocalRepository().verify_image()"""
+
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        localrepo.verify_image()
+        self.assertTrue(mock_lstruct.called)
 
 
 class CurlHeaderTestCase(unittest.TestCase):
@@ -1826,88 +1888,67 @@ class DockerIoAPITestCase(unittest.TestCase):
     def test_07__get_url(self, mock_local):
         self._init()
         #
-        uia = udocker.DockerIoAPI(mock_local)
         pass
 
-    def test_08__get_file(self):
+
+    def test_08_get_v1_repo(self):
         pass
 
-    def test_09__split_fields(self):
+    def test_09_get_v1_image_tags(self):
         pass
 
-    def test_10_get_v1_repo(self):
+    def test_10_get_v1_image_tag(self):
         pass
 
-    def test_11__get_v1_auth(self):
+    def test_11_get_v1_image_ancestry(self):
         pass
 
-    def test_12_get_v1_image_tags(self):
+    def test_12_get_v1_image_json(self):
         pass
 
-    def test_13_get_v1_image_tag(self):
+    def test_13_get_v1_image_layer(self):
         pass
 
-    def test_14_get_v1_image_ancestry(self):
+    def test_14_get_v1_layers_all(self):
         pass
 
-    def test_15_get_v1_image_json(self):
+    def test_15_get_v2_login_token(self):
         pass
 
-    def test_16_get_v1_image_layer(self):
+    def test_16_set_v2_login_token(self):
         pass
 
-    def test_17_get_v1_layers_all(self):
+    def test_17_is_v2(self):
         pass
 
-    def test_18__get_v2_auth(self):
+    def test_18_get_v2_image_manifest(self):
         pass
 
-    def test_19_get_v2_login_token(self):
+    def test_19_get_v2_image_layer(self):
         pass
 
-    def test_20_set_v2_login_token(self):
+    def test_20_get_v2_layers_all(self):
         pass
 
-    def test_21_is_v2(self):
+    def test_21_get_v2(self):
         pass
 
-    def test_22_get_v2_image_manifest(self):
+    def test_22_get_v1(self):
         pass
 
-    def test_23_get_v2_image_layer(self):
+    def test_23_get(self):
         pass
 
-    def test_24_get_v2_layers_all(self):
+    def test_24_search_init(self):
         pass
 
-    def test_25_get_v2(self):
+    def test_25_search_get_page_v1(self):
         pass
 
-    def test_26__get_v1_id_from_tags(self):
+    def test_26_catalog_get_page_v2(self):
         pass
 
-    def test_27__get_v1_id_from_images(self):
-        pass
-
-    def test_28_get_v1(self):
-        pass
-
-    def test_29__parse_imagerepo(self):
-        pass
-
-    def test_30_get(self):
-        pass
-
-    def test_31_search_init(self):
-        pass
-
-    def test_32_search_get_page_v1(self):
-        pass
-
-    def test_33_catalog_get_page_v2(self):
-        pass
-
-    def test_34_search_get_page(self):
+    def test_27_search_get_page(self):
         pass
 
 
@@ -2898,8 +2939,8 @@ class ContainerStructureTestCase(unittest.TestCase):
         udocker.Config.valid_host_env = ("HOME")
         udocker.Config.return_value.username.return_value = "user"
         udocker.Config.return_value.userhome.return_value = "/"
-        udocker.Config.return_value.oskernel.return_value = "4.8.13"
         udocker.Config.location = ""
+        udocker.Config.return_value.oskernel.return_value = "4.8.13"
 
     @mock.patch('udocker.LocalRepository')
     def test_01_init(self, mock_local):
