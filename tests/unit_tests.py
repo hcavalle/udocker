@@ -2227,8 +2227,8 @@ class FileBindTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.isdir')
     @mock.patch('udocker.os.path.realpath')
-    @mock.patch.object(udocker.FileUtil, 'mkdir')
-    def test_02_setup(self, mock_mkdir, mock_realpath, mock_isdir, mock_local):
+    @mock.patch('udocker.FileUtil')
+    def test_02_setup(self, mock_futil, mock_realpath, mock_isdir, mock_local):
         """Test FileBind().setup().
         Prepare container for FileBind"""
 
@@ -2238,33 +2238,23 @@ class FileBindTestCase(unittest.TestCase):
         mock_realpath.return_value = "/tmp"
 
         mock_isdir.return_value = True
-        fb = udocker.FileBind(mock_local, container_id)
-        status = fb.setup()
+        status = udocker.FileBind(mock_local, container_id).setup()
         self.assertTrue(mock_isdir.called)
         self.assertTrue(status)
 
-        fb = udocker.FileBind(mock_local, container_id)
         mock_isdir.return_value = False
-        status = fb.setup()
-        self.assertTrue(mock_isdir.called)
-        self.assertTrue(mock_mkdir.called)
-        self.assertTrue(status)
-
-        fb = udocker.FileBind(mock_local, container_id)
-        mock_isdir.return_value = False
-        mock_mkdir.return_value = False
-        status = fb.setup()
+        mock_futil.return_value.mkdir.return_value = False
+        status = udocker.FileBind(mock_local, container_id).setup()
         self.assertFalse(status)
 
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.isdir')
+    @mock.patch('udocker.os.path.islink')
     @mock.patch('udocker.os.path.isfile')
     @mock.patch('udocker.os.path.realpath')
     @mock.patch('udocker.os.listdir')
-    @mock.patch('udocker.FileUtil.remove')
-    @mock.patch('udocker.FileUtil')
-    def test_03_restore(self, mock_futil, mock_furemove, mock_listdir, mock_realpath,
-                        mock_isfile, mock_isdir, mock_local):
+    def test_03_restore(self, mock_listdir, mock_realpath,
+                        mock_isfile, mock_islink, mock_isdir, mock_local):
         """Test FileBind().restore()
         Restore container files after FileBind"""
 
@@ -2275,26 +2265,24 @@ class FileBindTestCase(unittest.TestCase):
         mock_listdir.return_value = []
 
         mock_isdir.return_value = False
-
         fb = udocker.FileBind(mock_local, container_id)
         status = fb.restore()
         self.assertTrue(mock_isdir.called)
         self.assertTrue(status)
 
         mock_isdir.return_value = True
-
+        fb = udocker.FileBind(mock_local, container_id)
         status = fb.restore()
         self.assertTrue(mock_listdir.called)
-        #self.assertTrue(mock_futil.assert_called_with())
         self.assertFalse(status)
 
-        mock_listdir.return_value = ["a"]
-        mock_isfile.side_effect = [False, True]
-
-        fb.restore()
+        mock_listdir.return_value = ["is_file1", "is_not", "is_file2"]
+        mock_isfile.side_effect = [True, False, True]
+        mock_islink.side_effect = [True, False, False]
+        status = fb.restore()
         self.assertTrue(mock_isfile.called)
-        self.assertFalse(mock_furemove.called)
-        #self.assertTrue(mock_futil.assert_called_with(self.bind_dir))
+        self.assertTrue(mock_islink.called)
+        self.assertFalse(status)
 
         #(TODO) lalves: This is WIP
 
