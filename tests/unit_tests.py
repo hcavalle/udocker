@@ -2276,7 +2276,7 @@ class FileBindTestCase(unittest.TestCase):
         self.assertTrue(mock_listdir.called)
         self.assertFalse(status)
 
-        mock_listdir.return_value = ["is_file1", "is_not", "is_file2"]
+        mock_listdir.return_value = ["is_file1", "is_dir", "is_file2"]
         mock_isfile.side_effect = [True, False, True]
         mock_islink.side_effect = [True, False, False]
         status = fb.restore()
@@ -2284,23 +2284,62 @@ class FileBindTestCase(unittest.TestCase):
         self.assertTrue(mock_islink.called)
         self.assertFalse(status)
 
-        #(TODO) lalves: This is WIP
-
-
     @mock.patch('udocker.LocalRepository')
-    def test_04_start(self, mock_local):
-        """Test FileBind().start()"""
-        pass
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.realpath')
+    @mock.patch('udocker.os.path.isfile')
+    @mock.patch('udocker.os.path.exists')
+    def test_04_start(self, mock_exists, mock_isfile,
+                      mock_realpath, mock_futil, mock_local):
+        """Test FileBind().start().
+        Prepare to run."""
+
+        self._init()
+
+        container_id = "CONTAINERID"
+        mock_realpath.return_value = "/tmp"
+        files_list = ["file1", "dir1", "file2"]
+
+        mock_futil.return_value.mktmp.return_value = "tmpDir"
+        fb = udocker.FileBind(mock_local, container_id)
+        fb.start(files_list)
+        self.assertTrue(mock_futil.called)
+
+        mock_isfile.side_effect = [True, False, True]
+        self.assertTrue(mock_isfile.called)
+        self.assertTrue(mock_exists.called)
+
+        self.assertIsInstance(fb.start(files_list), tuple)
+
 
     @mock.patch('udocker.LocalRepository')
     def test_05_finish(self, mock_local):
-        """Test FileBind().finish()"""
+        """Test FileBind().finish().
+        Cleanup after run."""
         pass
 
     @mock.patch('udocker.LocalRepository')
-    def test_06_add(self, mock_local):
-        """Test FileBind().add()"""
-        pass
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.realpath')
+    @mock.patch('udocker.os.path.isfile')
+    @mock.patch('udocker.os.path.exists')
+    def test_06_add(self, mock_exists, mock_isfile,
+                    mock_realpath, mock_futil, mock_local):
+        """Test FileBind().add().
+        Add file to be made available inside container."""
+
+        self._init()
+
+        container_id = "CONTAINERID"
+        mock_realpath.return_value = "/tmp"
+        host_file = "host.file"
+        container_file = "#container.file"
+
+        fb = udocker.FileBind(mock_local, container_id)
+        fb.host_bind_dir = "/tmp"
+        fb.add(host_file, container_file)
+        self.assertTrue(mock_futil.return_value.remove.called)
+        self.assertTrue(mock_futil.return_value.copyto.called)
 
 
 class ExecutionEngineCommonTestCase(unittest.TestCase):
@@ -4089,10 +4128,12 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.DockerIoAPI')
     @mock.patch('udocker.Msg')
     @mock.patch('udocker.LocalRepository')
-    def test_15_do_run(self, mock_local, mock_msg, mock_dioapi, mock_dlocapi,
+    @mock.patch('udocker.os.path.realpath')
+    def test_15_do_run(self, mock_realpath, mock_local, mock_msg, mock_dioapi, mock_dlocapi,
                        mock_ks, mock_cmdp, mock_eng, mock_getopt):
         """Test Udocker().do_run()"""
         self._init()
+        mock_realpath.return_value = "/tmp"
         #
         udoc = udocker.Udocker(mock_local)
         mock_cmdp.missing_options.return_value = True
