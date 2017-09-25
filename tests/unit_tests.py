@@ -2252,8 +2252,10 @@ class FileBindTestCase(unittest.TestCase):
     @mock.patch('udocker.os.path.islink')
     @mock.patch('udocker.os.path.isfile')
     @mock.patch('udocker.os.path.realpath')
+    @mock.patch('udocker.Config')
     @mock.patch('udocker.os.listdir')
-    def test_03_restore(self, mock_listdir, mock_realpath,
+    @mock.patch('udocker.FileUtil')
+    def test_03_restore(self, mock_futil, mock_listdir, mock_config, mock_realpath,
                         mock_isfile, mock_islink, mock_isdir, mock_local):
         """Test FileBind().restore()
         Restore container files after FileBind"""
@@ -2263,6 +2265,8 @@ class FileBindTestCase(unittest.TestCase):
         container_id = "CONTAINERID"
         mock_realpath.return_value = "/tmp"
         mock_listdir.return_value = []
+        mock_config.return_value.tmpdir.return_value = "/tmp"
+        mock_futil.return_value.remove.return_value = True
 
         mock_isdir.return_value = False
         fb = udocker.FileBind(mock_local, container_id)
