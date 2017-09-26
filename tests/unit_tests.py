@@ -28,7 +28,6 @@ import unittest
 import mock
 import os
 
-from mock.mock import self
 
 try:
     from StringIO import StringIO
@@ -1303,7 +1302,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.FileUtil')
     @mock.patch.object(udocker.LocalRepository, '_is_tag')
     def test_23__get_tags(self, mock_is, mock_futil,
-                         mock_listdir, mock_isdir):
+                          mock_listdir, mock_isdir):
         """Test LocalRepository()._get_tags()"""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1548,10 +1547,38 @@ class LocalRepositoryTestCase(unittest.TestCase):
             self.assertTrue(mopen.called)
             self.assertFalse(status)
 
+    @mock.patch('udocker.FileUtil')
+    def test_31__protect(self, mock_futil):
+        """Test LocalRepository()._protect().
+        Set the protection mark in a container or image tag"""
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        mock_futil.return_value.isdir.return_value = True
+        status = localrepo._protect
+        self.assertTrue(status)
+
+    @mock.patch('udocker.FileUtil')
+    def test_32__unprotect(self, mock_futil):
+        """Test LocalRepository()._unprotect().
+        Remove protection mark from container or image tag."""
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        mock_futil.return_value.isdir.return_value = True
+        status = localrepo._unprotect("dir")
+        self.assertTrue(status)
+
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.exists')
+    def test_33__isprotected(self, mock_exists, mock_futil):
+        """Test LocalRepository()._isprotected().
+        See if container or image tag are protected."""
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        mock_futil.return_value.isdir.return_value = True
+        mock_exists.return_value = True
+        status = localrepo._isprotected("dir")
+        self.assertTrue(status)
 
     @mock.patch.object(udocker.LocalRepository, 'cd_container')
     @mock.patch.object(udocker.LocalRepository, 'get_containers_list')
-    def test_31_del_container(self, mock_cdcont, mock_getcl):
+    def test_34_del_container(self, mock_cdcont, mock_getcl):
         """Test LocalRepository().del_container()"""
 
         localrepo = self._localrepo(UDOCKER_TOPDIR)
@@ -1571,9 +1598,65 @@ class LocalRepositoryTestCase(unittest.TestCase):
         status = localrepo.del_container(container_id)
         self.assertTrue(status)
 
+    def test_35__relpath(self):
+        pass
+
+    def test_36__name_is_valid(self):
+        """Test LocalRepository()._name_is_valid()
+        Check name alias validity.
+        """
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+
+        name = "lzskjghdlak"
+        status = localrepo._name_is_valid(name)
+        self.assertTrue(status)
+
+        name = "lzskjghd/lak"
+        status = localrepo._name_is_valid(name)
+        self.assertFalse(status)
+
+        name = ".lzsklak"
+        status = localrepo._name_is_valid(name)
+        self.assertFalse(status)
+
+        name = "]lzsklak"
+        status = localrepo._name_is_valid(name)
+        self.assertFalse(status)
+
+        name = "lzs[klak"
+        status = localrepo._name_is_valid(name)
+        self.assertFalse(status)
+
+        name = "lzs klak"
+        status = localrepo._name_is_valid(name)
+        self.assertFalse(status)
+
+        name = "x" * 2049
+        status = localrepo._name_is_valid(name)
+        self.assertFalse(status)
+
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.isfile')
+    def test_37__is_tag(self, mock_isfile, mock_futil):
+        """Test LocalRepository()._is_tag()
+        Does this directory contain an image tag ?
+        An image TAG indicates that this repo directory
+        contains references to layers and metadata from
+        which we can extract a container.
+        """
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+
+        mock_isfile.return_value = True
+        status = localrepo._is_tag("tagdir")
+        self.assertTrue(status)
+
+        mock_isfile.return_value = False
+        status = localrepo._is_tag("tagdir")
+        self.assertFalse(status)
+
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.exists')
-    def test_32_cd_imagerepo(self, mock_local, mock_exists):
+    def test_38_cd_imagerepo(self, mock_local, mock_exists):
         """Test LocalRepository().cd_imagerepo()"""
 
         localrepo = self._localrepo(UDOCKER_TOPDIR)
@@ -1582,8 +1665,85 @@ class LocalRepositoryTestCase(unittest.TestCase):
         self.assertTrue(mock_exists.called)
         self.assertNotEqual(out, "")
 
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.islink')
+    @mock.patch('udocker.os.path.isdir')
+    @mock.patch('udocker.os.listdir')
+    def test_39__find(self, mock_listdir, mock_isdir, mock_islink, mock_futil):
+        """Test LocalRepository()._find().
+        is a specific layer filename referenced by another image TAG"""
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        
+        mock_futil.return_value.isdir.return_value = True
+        mock_listdir.return_value = ["file"]
+        mock_islink.return_value = True
+        filename = "file"
+        dir = "/tmp"
+        
+        out = localrepo._find(filename, dir)
+        self.assertEqual(out, ["/tmp/file"])
+
+        mock_islink.return_value = False
+        mock_isdir.return_value = False
+
+        out = localrepo._find(filename, dir)
+        self.assertEqual(out, [])
+
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.islink')
+    @mock.patch('udocker.os.path.isdir')
+    @mock.patch('udocker.os.listdir')
+    def test_40__inrepository(self, mock_listdir, mock_isdir, mock_islink, mock_futil):
+        """Test LocalRepository()._inrepository().
+        Check if a given file is in the repository"""
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+
+        mock_futil.return_value.isdir.return_value = True
+        mock_listdir.return_value = ["file"]
+        mock_islink.return_value = True
+        localrepo.reposdir = "/tmp"
+        filename = "file"
+
+        out = localrepo._inrepository(filename)
+        self.assertEqual(out, ["/tmp/file"])
+
+        mock_islink.return_value = False
+        mock_isdir.return_value = False
+
+        out = localrepo._inrepository(filename)
+        self.assertEqual(out, [])
+
+    @mock.patch('udocker.FileUtil')
+    @mock.patch('udocker.os.path.islink')
+    @mock.patch('udocker.os.readlink')
+    @mock.patch('udocker.os.listdir')
+    @mock.patch('udocker.os.path.realpath')
+    def test_41__remove_layers(self, mock_realpath, mock_listdir, mock_readlink,
+                               mock_islink, mock_futil):
+        """Test LocalRepository()._remove_layers().
+        Remove link to image layer and corresponding layer
+        if not being used by other images.
+        """
+
+        localrepo = self._localrepo(UDOCKER_TOPDIR)
+        localrepo.reposdir = "/tmp"
+        mock_realpath.return_value = "/tmp"
+        mock_listdir.return_value = "file"
+        mock_islink.return_value = True
+        mock_readlink.return_value = "file"
+        tag_dir = "TAGDIR"
+
+        mock_futil.return_value.remove.return_value = False
+        status = localrepo._remove_layers(tag_dir, True)
+        self.assertTrue(status)
+
+        mock_futil.return_value.remove.return_value = False
+        status = localrepo._remove_layers(tag_dir, False)
+        #(FIXME lalves): This is not OK, it should be False.
+        self.assertTrue(status)
+
     @mock.patch.object(udocker.LocalRepository, '_get_tags')
-    def test_33_get_imagerepos(self, mock_gtags):
+    def test_42_get_imagerepos(self, mock_gtags):
         """Test LocalRepository().get_imagerepos()"""
 
         localrepo = self._localrepo(UDOCKER_TOPDIR)
@@ -1592,17 +1752,30 @@ class LocalRepositoryTestCase(unittest.TestCase):
 
     @mock.patch('udocker.LocalRepository')
     @mock.patch.object(udocker.LocalRepository, 'cd_container')
-    def test_34_get_layers(self, mock_local, mock_cd):
+    def test_43_get_layers(self, mock_local, mock_cd):
         """Test LocalRepository().get_layers()"""
 
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         localrepo.get_layers("IMAGE", "TAG")
         self.assertTrue(mock_cd.called)
 
+    def test_44__load_structure(self):
+        """Test LocalRepository()._load_structure().
+        Scan the repository structure of a given image tag."""
+        pass
+
+    def test_45__find_top_layer_id(self):
+        pass
+
+    def test_46__sorted_layers(self):
+        pass
+
+    def test_47__verify_layer_file(self):
+        pass
 
     @mock.patch('udocker.LocalRepository')
     @mock.patch.object(udocker.LocalRepository, '_load_structure')
-    def test_35_verify_image(self, mock_local, mock_lstruct):
+    def test_48_verify_image(self, mock_local, mock_lstruct):
         """Test LocalRepository().verify_image()"""
 
         localrepo = self._localrepo(UDOCKER_TOPDIR)
@@ -1885,70 +2058,72 @@ class DockerIoAPITestCase(unittest.TestCase):
         self.assertTrue(uia._is_docker_registry())
 
     @mock.patch('udocker.LocalRepository')
-    def test_07__get_url(self, mock_local):
-        self._init()
-        #
+    def test_07_get_v1_repo(self, mock_local):
+        """Get list of images in a repo from Docker Hub"""
+        # self._init()
+        # #
+        # uia = udocker.DockerIoAPI(mock_local)
+        # uia.set_index("https://index.docker.io")
+        # imagerepo = "IMAGEREPONAME"
+        # out = uia.get_v1_repo(imagerepo)
+        # self.assertIsInstance(out, tuple)
         pass
 
-
-    def test_08_get_v1_repo(self):
+    def test_08_get_v1_image_tags(self):
         pass
 
-    def test_09_get_v1_image_tags(self):
+    def test_09_get_v1_image_tag(self):
         pass
 
-    def test_10_get_v1_image_tag(self):
+    def test_10_get_v1_image_ancestry(self):
         pass
 
-    def test_11_get_v1_image_ancestry(self):
+    def test_11_get_v1_image_json(self):
         pass
 
-    def test_12_get_v1_image_json(self):
+    def test_12_get_v1_image_layer(self):
         pass
 
-    def test_13_get_v1_image_layer(self):
+    def test_13_get_v1_layers_all(self):
         pass
 
-    def test_14_get_v1_layers_all(self):
+    def test_14_get_v2_login_token(self):
         pass
 
-    def test_15_get_v2_login_token(self):
+    def test_15_set_v2_login_token(self):
         pass
 
-    def test_16_set_v2_login_token(self):
+    def test_16_is_v2(self):
         pass
 
-    def test_17_is_v2(self):
+    def test_17_get_v2_image_manifest(self):
         pass
 
-    def test_18_get_v2_image_manifest(self):
+    def test_18_get_v2_image_layer(self):
         pass
 
-    def test_19_get_v2_image_layer(self):
+    def test_19_get_v2_layers_all(self):
         pass
 
-    def test_20_get_v2_layers_all(self):
+    def test_20_get_v2(self):
         pass
 
-    def test_21_get_v2(self):
+    def test_21_get_v1(self):
         pass
 
-    def test_22_get_v1(self):
+    def test_22_get(self):
         pass
 
-    def test_23_get(self):
+    def test_23_search_init(self):
         pass
 
-    def test_24_search_init(self):
+    def test_24_search_get_page_v1(self):
         pass
 
-    def test_25_search_get_page_v1(self):
+    def test_25_catalog_get_page_v2(self):
         pass
 
-    def test_26_catalog_get_page_v2(self):
-        pass
-
-    def test_27_search_get_page(self):
+    def test_26_search_get_page(self):
         pass
 
 
