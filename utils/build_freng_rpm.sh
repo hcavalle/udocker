@@ -147,31 +147,30 @@ make
 %install
 rm -rf %{buildroot}
 install -m 755 -D %{_builddir}/%{name}-%{version}/patchelf/src/patchelf %{buildroot}/%{_libexecdir}/udocker/patchelf-x86_64
-echo "%{_libexecdir}/udocker/patchelf-x86_64" > %{_builddir}/%{name}/files.lst
-
+echo "%{_libexecdir}/udocker/patchelf-x86_64" > %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-CentOS-6-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-CentOS-6-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-6-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-6-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-CentOS-7-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-CentOS-7-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-7-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-7-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Fedora-25-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-Fedora-25-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-Fedora-25-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-Fedora-25-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Fedora-25-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-Fedora-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-Fedora-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-Fedora-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Ubuntu-14-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-14-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-14-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-14-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Ubuntu-14-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Ubuntu-14-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-CentOS-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Ubuntu-14-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-Ubuntu-16-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-16-x86_64.so
-echo "%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-16-x86_64.so" >> %{_builddir}/%{name}/files.lst
+echo "%{_datarootdir}/udocker/lib/libfakechroot-Ubuntu-16-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst
 
 %clean
 rm -rf %{buildroot}
 
-%files -f %{_builddir}/%{name}/files.lst
+%files -f %{_builddir}/%{name}-%{version}/files.lst
 %defattr(-,root,root)
 
 %doc %{name}-%{version}/LICENSE-fakechroot %{name}-%{version}/COPYING-fakechroot %{name}-%{version}/THANKS-fakechroot %{name}-%{version}/COPYING-patchelf %{name}-%{version}/README-patchelf

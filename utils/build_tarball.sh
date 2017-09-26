@@ -217,8 +217,8 @@ prepare_package()
         /bin/mkdir -p "${PACKAGE_DIR}/udocker_dir/lib"
     fi
 
-    /bin/cp -f "${S_PROOT_DIR}/proot-x86"    "${PACKAGE_DIR}/udocker_dir/bin/"
-    /bin/cp -f "${S_PROOT_DIR}/proot-x86_64" "${PACKAGE_DIR}/udocker_dir/bin/"
+    #/bin/cp -f "${S_PROOT_DIR}/proot-x86"    "${PACKAGE_DIR}/udocker_dir/bin/"
+    #/bin/cp -f "${S_PROOT_DIR}/proot-x86_64" "${PACKAGE_DIR}/udocker_dir/bin/"
     /bin/cp -f "${S_PROOT_DIR}/proot-arm"    "${PACKAGE_DIR}/udocker_dir/bin/"
     /bin/cp -f "${S_PROOT_DIR}/proot-arm64"  "${PACKAGE_DIR}/udocker_dir/bin/"
 
@@ -361,17 +361,18 @@ fedora25_build_proot()
         exit 2
     fi
 
-    if [ -x "${PROOT_SOURCE_DIR}/proot-Fedora-25.so" ] ; then
-        echo "proot binary already compiled : ${PROOT_SOURCE_DIR}/proot-Fedora-25.so"
-        return
-    fi
-
     export PROOT_NO_SECCOMP=1
 
-    # compile PRoot
-    $PROOT -r "$OS_ROOTDIR" -b "${PROOT_SOURCE_DIR}:/proot" -w / -b /dev \
-                           -b "${S_PROOT_PACKAGES_DIR}:/proot-static-packages"   /bin/bash <<'EOF_fedora25_proot'
+    if [ -x "${PROOT_SOURCE_DIR}/proot-Fedora-25-ORIG.bin" ] ; then
+        echo "proot binary already compiled : ${PROOT_SOURCE_DIR}/proot-Fedora-25-ORIG.bin"
+    else
+        patch_proot_source1 "${PROOT_SOURCE_DIR}"
+        patch_proot_source3 "${PROOT_SOURCE_DIR}"
+        # compile PRoot step 1
+        $PROOT -r "$OS_ROOTDIR" -b "${PROOT_SOURCE_DIR}:/proot" -w / -b /dev \
+                           -b "${S_PROOT_PACKAGES_DIR}:/proot-static-packages"   /bin/bash <<'EOF_fedora25_proot_1'
 cd /proot
+/bin/rm -f proot-Fedora-25.bin src/proot
 # BUILD TALLOC
 tar xzvf /proot-static-packages/talloc-2.1.1.tar.gz
 cd talloc-2.1.1
@@ -384,9 +385,37 @@ cp libtalloc.a /proot/src && make clean
 # BUILD PROOT
 cd /proot/src
 make
-cp proot /proot/proot-Fedora-25.so
+mv proot /proot/proot-Fedora-25-ORIG.bin
+EOF_fedora25_proot_1
+    fi
+
+    if [ ! -e "${PROOT_SOURCE_DIR}/proot-Fedora-25-ORIG.bin" ]; then
+        echo "proot compilation failed ${PROOT_SOURCE_DIR}/proot-Fedora-25-ORIG.bin not found"
+        exit 1
+    fi
+
+    if [ -x "${PROOT_SOURCE_DIR}/proot-Fedora-25-4_8_0.bin" ] ; then
+        echo "proot binary already compiled : ${PROOT_SOURCE_DIR}/proot-Fedora-25-4_8_0.bin"
+    else
+        patch_proot_source2 "${PROOT_SOURCE_DIR}"
+        # compile PRoot step 2
+        $PROOT -r "$OS_ROOTDIR" -b "${PROOT_SOURCE_DIR}:/proot" -w / -b /dev \
+                           -b "${S_PROOT_PACKAGES_DIR}:/proot-static-packages"   /bin/bash <<'EOF_fedora25_proot_2'
+cd /proot
+/bin/rm -f src/proot
+# BUILD PROOT
+cd /proot/src
+make
+mv proot /proot/proot-Fedora-25-4_8_0.bin
 make clean
-EOF_fedora25_proot
+EOF_fedora25_proot_2
+    fi
+
+    if [ ! -e "${PROOT_SOURCE_DIR}/proot-Fedora-25-4_8_0.bin" ]; then
+        echo "proot compilation failed ${PROOT_SOURCE_DIR}/proot-Fedora-25-4_8_0.bin not found"
+        exit 1
+    fi
+
 }
 
 
@@ -415,6 +444,9 @@ fedora25_build_patchelf()
     fi
 
     export PROOT_NO_SECCOMP=1
+
+    patch_patchelf_source1 "${PATCHELF_SOURCE_DIR}"
+    patch_patchelf_source2 "${PATCHELF_SOURCE_DIR}"
 
     # compile patchelf
     set -xv
@@ -458,6 +490,8 @@ fedora25_build_fakechroot()
     fi
 
     export PROOT_NO_SECCOMP=1
+
+    patch_fakechroot_source1 "${FAKECHROOT_SOURCE_DIR}"
 
     # compile fakechroot
     set -xv
@@ -1045,12 +1079,20 @@ ostree_delete()
 create_package_tarball()
 {
     echo "create_package_tarball : $TARBALL_FILE"
-    if [ ! -f "${BUILD_DIR}/proot-source-x86/proot-Fedora-25.so" ] ; then
-        echo "ERROR: failed to compile : ${BUILD_DIR}/proot-source-x86/proot-Fedora-25.so"
+    if [ ! -f "${BUILD_DIR}/proot-source-x86/proot-Fedora-25-ORIG.bin" ] ; then
+        echo "ERROR: failed to compile : ${BUILD_DIR}/proot-source-x86/proot-Fedora-25-ORIG.bin"
         return
     fi
-    if [ ! -f "${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25.so" ] ; then
-        echo "ERROR: failed to compile : ${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25.so"
+    if [ ! -f "${BUILD_DIR}/proot-source-x86/proot-Fedora-25-4_8_0.bin" ] ; then
+        echo "ERROR: failed to compile : ${BUILD_DIR}/proot-source-x86/proot-Fedora-25-4_8_0.bin"
+        return
+    fi
+    if [ ! -f "${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25-ORIG.bin" ] ; then
+        echo "ERROR: failed to compile : ${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25-ORIG.bin"
+        return
+    fi
+    if [ ! -f "${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25-4_8_0.bin" ] ; then
+        echo "ERROR: failed to compile : ${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25-4_8_0.bin"
         return
     fi
     if [ ! -f "${BUILD_DIR}/patchelf-source-x86_64/patchelf-Fedora-25" ] ; then
@@ -1082,9 +1124,13 @@ create_package_tarball()
         return
     fi
 
-    /bin/cp -f "${BUILD_DIR}/proot-source-x86/proot-Fedora-25.so" \
+    /bin/cp -f "${BUILD_DIR}/proot-source-x86/proot-Fedora-25-ORIG.bin" \
+               "${PACKAGE_DIR}/udocker_dir/bin/proot-x86"
+    /bin/cp -f "${BUILD_DIR}/proot-source-x86/proot-Fedora-25-4_8_0.bin" \
                "${PACKAGE_DIR}/udocker_dir/bin/proot-x86-4_8_0"
-    /bin/cp -f "${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25.so" \
+    /bin/cp -f "${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25-ORIG.bin" \
+               "${PACKAGE_DIR}/udocker_dir/bin/proot-x86_64"
+    /bin/cp -f "${BUILD_DIR}/proot-source-x86_64/proot-Fedora-25-4_8_0.bin" \
                "${PACKAGE_DIR}/udocker_dir/bin/proot-x86_64-4_8_0"
     /bin/cp -f "${BUILD_DIR}/patchelf-source-x86_64/patchelf-Fedora-25" \
                "${PACKAGE_DIR}/udocker_dir/bin/patchelf-x86_64"
@@ -1147,9 +1193,6 @@ addto_package_other
 # i386
 # #######
 prepare_proot_source "${BUILD_DIR}/proot-source-x86"
-patch_proot_source1 "${BUILD_DIR}/proot-source-x86"
-patch_proot_source2 "${BUILD_DIR}/proot-source-x86"
-patch_proot_source3 "${BUILD_DIR}/proot-source-x86"
 #
 fedora25_setup "i386"
 fedora25_build_proot "i386" "${BUILD_DIR}/proot-source-x86"
@@ -1159,14 +1202,8 @@ fedora25_build_proot "i386" "${BUILD_DIR}/proot-source-x86"
 # x86_64
 # #######
 prepare_proot_source "${BUILD_DIR}/proot-source-x86_64"
-patch_proot_source1 "${BUILD_DIR}/proot-source-x86_64"
-patch_proot_source2 "${BUILD_DIR}/proot-source-x86_64"
-patch_proot_source3 "${BUILD_DIR}/proot-source-x86_64"
 prepare_patchelf_source "${BUILD_DIR}/patchelf-source-x86_64"
-patch_patchelf_source1 "${BUILD_DIR}/patchelf-source-x86_64"
-patch_patchelf_source2 "${BUILD_DIR}/patchelf-source-x86_64"
 prepare_fakechroot_source "${BUILD_DIR}/fakechroot-source-x86_64"
-patch_fakechroot_source1 "${BUILD_DIR}/fakechroot-source-x86_64"
 prepare_runc_source "${BUILD_DIR}/runc-source-x86_64"
 #
 fedora25_setup "x86_64"
