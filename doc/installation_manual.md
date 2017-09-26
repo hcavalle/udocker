@@ -16,25 +16,25 @@ to download both the binaries and/or pull containers from repositories.
 ## 2. USER INSTALLATION
 
 <!--
+-->
 The official release of udocker is available from the INDIGO-DataCloud
 repository at `http://repo.indigo-datacloud.eu/` where is made available
-as a tarball to be deployed by the end user. Allways check for the latest
-official version released by INDIGO-DataCloud. 
+as a tarball to be deployed by the end user.
 
 The tarball installation method contains statically compiled binaries and 
-is built to the used across different hosts and OS distributions.
+is built to be used across different hosts and OS distributions.
 
-Install udocker v1.0.1 or higher released by INDIGO-DataCloud:
+Install of udocker v1.0.1 or higher released by INDIGO-DataCloud:
 
 ```
-  curl http://repo.indigo-datacloud.eu/repository/indigo/1/centos7/x86_64/tgz/udocker-1.0.1.tar.gz > udocker-tarball.tgz
+  curl http://repo.indigo-datacloud.eu/repository/indigo/1/centos7/x86_64/tgz/udocker-1.1.0.tar.gz > udocker-tarball.tgz
   export UDOCKER_TARBALL=$(pwd)/udocker-tarball.tgz
   tar xzvf $UDOCKER_TARBALL udocker
   ./udocker version
   mv ./udocker $HOME   # move the executable to your preferred location for binaries
 ```
 
-Install the previous udocker 1.0.0 released by INDIGO-DataCloud:
+Install of the old udocker 1.0.0 released by INDIGO-DataCloud:
 
 ```
   cd $HOME
@@ -42,7 +42,7 @@ Install the previous udocker 1.0.0 released by INDIGO-DataCloud:
   ./udocker.py version
 ```
 
-If using the setup.py provided in the releases install with:
+When using the setup.py provided in the releases install with:
 
 ```
   mkdir /tmp/somedir
@@ -51,14 +51,12 @@ If using the setup.py provided in the releases install with:
   python setup.py install --home /home/USER/bin
 ```
 
--->
 
 Optionally just download and execute the udocker python script from the source and the
 installation will be performed automatically. The installation from source code is not
 officially supported by INDIGO-DataCloud.
 
-<!--
-For the master branch:
+From the master branch:
 
 ```
   curl https://raw.githubusercontent.com/indigo-dc/udocker/master/udocker.py > udocker
@@ -66,16 +64,15 @@ For the master branch:
   ./udocker version
 ```
 
-For the development branch:
+From the development branch:
 
 ```
   curl https://raw.githubusercontent.com/indigo-dc/udocker/devel/udocker.py > udocker
   chmod u+rx ./udocker
   ./udocker version
 ```
--->
 
-For THIS development branch:
+From udocker-fr development branch:
 
 ```
   curl https://raw.githubusercontent.com/indigo-dc/udocker/udocker-fr/udocker.py > udocker
@@ -84,7 +81,6 @@ For THIS development branch:
 ```
 
 
-<!--
 ## 3. SYSTEM INSTALLATION WITH RPMs and DEBs
 
 Beware that these packages contain dynamically linked binaries compiled for
@@ -95,15 +91,15 @@ systems use the tarball installation method described above.
 RPMs for CentOS 7 are provided at http://repo.indigo-datacloud.eu
 
 ```
-  rpm -i udocker-1.0.1-1.noarch.rpm 
-  rpm -i udocker-preng-1.0.1-1.x86_64.rpm
+  rpm -i udocker-1.1.0-1.noarch.rpm 
+  rpm -i udocker-preng-1.1.0-1.x86_64.rpm
 ```
 
 DEBs for Ubuntu 14.04 are provided at http://repo.indigo-datacloud.eu
 
 ```
-  dpkg -i udocker_1.0.1-1_all.deb
-  dpkg -i udocker-preng_1.0.1-1_amd64.deb
+  dpkg -i udocker_1.1.0-1_all.deb
+  dpkg -i udocker-preng_1.1.0-1_amd64.deb
 ```
 
 ## 4. SYSTEM INSTALLATION WITH ANSIBLE AND PYTHON
@@ -135,19 +131,17 @@ Optionally installation can be performed directly with pip:
 ```
   pip install git+https://github.com/indigo-dc/udocker
 ```
--->
 
 ## 5. SOURCE CODE
-To get this branch:
+To get the master branch:
 
 ```
-  git clone -b udocker-fr https://github.com/indigo-dc/udocker
+  git clone https://github.com/indigo-dc/udocker
 ```
 
 
-<!--
-To get the latest udocker script from the github development branch without
-cloning the entire repository.
+To get the latest udocker script from the github devel branch without
+cloning the entire repository. This downloads udocker.py only.
 ```
   curl https://raw.githubusercontent.com/indigo-dc/udocker/devel/udocker.py
 ```
@@ -159,12 +153,11 @@ repository, or use a web browser to access github at `https://github.com/indigo-
   git clone https://github.com/indigo-dc/udocker
 ```
 
-To get the udocker source code repository from the development branch.
+To get the udocker source code repository from the devel branch.
 
 ```
   git clone -b devel https://github.com/indigo-dc/udocker
 ```
--->
 
 ## 6. BUILD
 

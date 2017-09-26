@@ -554,7 +554,8 @@ Examples:
 ```
 Choose an execution mode to define how a given container will be executed.
 Enables selection of an execution engine and related execution modes.
-Without --execmode=XY, setup will print the current execution mode.
+Without --execmode=XY, setup will print the current execution mode for the
+given container.
 
 Options:
 
@@ -571,30 +572,44 @@ Options:
 | F4 | Fakechroot | F3 plus enables new executables and libs | same as F3
 | R1 | runC       | rootless user mode namespaces            | resolv.conf
 
-The default execution mode is P2 which uses PTRACE without SECCOMP.
+The default execution mode is P1.
 
-The Fakechroot engine is in experimental status. It provides native host
-performance for most system calls.  It has four modes that offer increasing
-compatibility levels. F1 is the least intrusive and only changes absolute
-symbolic links so that they point to the container. F2 adds changes to the
-loader to prevent loading of host shareable libraries. F3 adds changes to
-all binaries (ELF headers of executables and libraries) to remove absolute 
-references pointing to the host shareable libraries. These changes are
-performed once during the setup, executables added after setup will not have
-their ELF headers fixed and will fail to run. Notice that setup can be rerun 
-with the --force option to fix these binaries. F4 performs the ELF header
-changes dynamically (on-the-fly) thus enabling compilation and linking within
-the container and new executables to be transferred to the container and
-executed.
+The mode P2 uses PRoot and provides the lowest performance but at
+the same time is also the most reliable. The mode P1 uses PRoot with 
+SECCOMP syscall filtering which provides higher performance in most 
+operating systems. PRoot is the most universal solution but may exhibit
+lower performance on older kernels such as in CentOS 6 hosts.
 
-Also notice that changes performed in Fn and Rn modes prevent the containers 
-from running in hosts where the directory pathname to the container is 
-different. 
-In this case convert back to P2, transfer to the host, and then convert again 
-from P2 to the intended Fn mode.
+The Fakechroot and runC engines are EXPERIMENTAL. They provide higher
+performance for most system calls, but only support a reduced set of
+operating systems. runC with rootless user mode namespaces requires a 
+recent Linux kernel and is known to work on Ubuntu and Fedora hosts.
+Fakechroot requires libraries compiled for each guest operating system,
+udocker provides these libraries for Ubuntu 14, Ubuntu 16, Fedora >= 25,
+CentOS 6 and CentOS 7. Other guests may or may not work with these 
+same libraries. 
 
-Mode Rn only depends on kernel support for rootless containers and may not
-work on some distributions especially older ones.
+The udocker Fakechroot engine has four modes that offer increasing
+compatibility levels. F1 is the least intrusive mode and only changes 
+absolute symbolic links so that they point to locations inside the 
+container.  F2 adds changes to the loader to prevent loading of host 
+shareable libraries. F3 adds changes to all binaries (ELF headers of 
+executables and libraries) to remove absolute references pointing to 
+the host shareable libraries. These changes are performed once during 
+the setup, executables added after setup will not have their ELF headers 
+fixed and will fail to run. Notice that setup can be rerun with the 
+--force option to fix these binaries. F4 performs the ELF header
+changes dynamically (on-the-fly) thus enabling compilation and linking 
+within the container and new executables to be transferred to the 
+container and executed.
+
+Also notice that changes performed in Fn and Rn modes will prevent the
+containers from running in hosts where the directory path to the container
+is different. In this case convert back to P1 or P2, transfer to the target 
+host, and then convert again from Pn to the intended Fn mode.
+
+Mode Rn only depends on kernels with support for rootless containers, thus
+it will not work on some distributions especially older ones.
  
 Quick examples:
 
@@ -616,10 +631,109 @@ Quick examples:
   udocker run  mycontainer  /bin/ls
 ```
 
+## 4. Running MPI Jobs
+
+In this section we will use the Lattice QCD simulation software openQCD to demonstrate how to
+run Open MPI applications with udocker (http://luscher.web.cern.ch/luscher/openQCD). Lattice
+QCD simulations are performed on high-performance parallel computers with hundreds and thousands
+of processing units. All the software environment that is needed for openQCD is a compliant C 
+compiler and a local MPI installation such as Open MPI. 
+
+In what follows we describe the steps to execute openQCD using udocker in a HPC system with a batch
+system (e.g. SLURM). An analogous procedure can be followed for other MPI applications.
+
+A container image of openQCD can be downloaded from the dockerhub repository. From this image a
+container can be extracted to the filesystem (using udocker create) as described below.
+
+```
+./udocker pull iscampos/openqcd
+./udocker create --name=openqcd iscampos/openqcd
+fbeb130b-9f14-3a9d-9962-089b4acf3ea8
+```
+
+Next the created container is executed (notice that the variable LD_LIBRARY_PATH is explicitly set):
+
+```
+./udocker run -e LD_LIBRARY_PATH=/usr/lib openqcd /bin/bash
+```
+
+In this approach the host mpiexec will submit the N MPI process instances, as containers, in such a
+way that the containers are able to commmunicate via the low latency interconnect (Infiniband in the 
+case at hand).
+
+For this approach to work, the code in the container needs to be compiled with the same version of
+MPI that is available in the HPC system. This is necessary because the Open MPI versions of mpiexec
+and orted available in the host system need to match with the compiled program. In this example the
+Open MPI version is v2.0.1. Therefore we need to download this version and compile it inside the
+container.
+
+Note: first the example Open MPI installation that comes along with the openqcd container are
+removed with: 
+
+```
+yum remove openmpi
+```
+
+We download Open MPI v.2.0.1 from https://www.open-mpi.org/software/ompi/v2.0 and compile it. 
+
+Openib and libibverbs need to be install to compile Open MPI over Infiniband. For that, install
+the epel repository on the container. This step is not required if running using TCP/IP is enough.
+
+```
+yum install -y epel-release
+yum install *openib*
+yum install *openib-devel*
+yum install libibverbs*
+yum install libibverbs-devel*
+```
+
+The Open MPI source is compiled and installed in the container under /usr for convenience:
+
+```
+cd /usr
+tar xvf openmpi-2.0.1.tgz 
+cd /usr/openmpi-2.0.1
+./configure --with-verbs --prefix=/usr
+make
+make install
+```
+
+OpenQCD can then be compiled inside the udocker container in the usual way. The MPI job
+submission to the HPC cluster succeeds by including this line in the batch script:
+
+```
+/opt/cesga/openmpi/2.0.1/gcc/6.3.0/bin/mpiexec -np 128 \
+$LUSTRE/udocker-master/udocker run -e LD_LIBRARY_PATH=/usr/lib  \
+--hostenv --hostauth --user=cscdiica -v /tmp \
+--workdir=/op/projects/openQCD-1.6/main openqcd \
+/opt/projects/openQCD-1.6/main/ym1 -i ym1.in -noloc 
+```
+(where $LUSTRE points to the appropriate user filesystem directory in the HPC system)
+
+Notice that depending on the application and host operating system a noticeable performance
+degradation may occur when using the default execution mode (Pn). In this situation other
+execution modes (Fn) may provide improved performance (see section 3.23).
+
+
+## 5. Accessing GP/GPUs
+
+
+## 6. Transferring udocker containers
+
+In UDOCKER
+
+## Issues
+
+When experiencing issues in the default execution mode you may try
+to setup the container to execute using mode P2 or one of the F or 
+R modes. See section 3.23 for information on changing execution modes.
+
 ## Aknowlegments
 
 * PRoot http://proot.me
 * Fakechroot https://github.com/dex4er/fakechroot/wiki
 * runC https://runc.io/
 * INDIGO DataCloud https://www.indigo-datacloud.eu
+* Open MPI https://www.open-mpi.org
+* openQCD http://luscher.web.cern.ch/luscher/openQCD
 
