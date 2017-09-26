@@ -188,7 +188,7 @@ class Config(object):
     )
 
     # container execution mode if not set via setup
-    default_execution_mode = "P2"
+    default_execution_mode = "P1"
 
     # PRoot override seccomp
     # proot_noseccomp = True
