@@ -2290,9 +2290,6 @@ class RuncEngine(ExecutionEngineCommon):
         try:
             infile = open(self._container_specfile)
             json_obj = json.load(infile)
-            if (json_obj["platform"]["os"] != "linux" or
-                    json_obj["platform"]["arch"] != Config().arch()):
-                json_obj = None
         except (IOError, OSError, AttributeError, ValueError, TypeError):
             json_obj = None
         if infile:
