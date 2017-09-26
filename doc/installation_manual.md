@@ -194,7 +194,7 @@ The location of the udocker directory can be changed via environment variables.
  * UDOCKER_TMP : location of temporary directory
  * UDOCKER_TARBALL : location of installation tarball (file of URL)
 
-The docker index and registry and be overrided via environment variables.
+The Docker index and registry and be overrided via environment variables.
 
  * UDOCKER_INDEX : https://...
  * UDOCKER_REGISTRY : https://...

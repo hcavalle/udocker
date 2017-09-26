@@ -1,34 +1,38 @@
 # udocker USER MANUAL
 
-A basic user tool to execute simple docker containers in user space 
+A basic user tool to execute simple Docker containers in user space 
 without requiring root privileges. Enables basic download and execution 
-of docker containers by non-privileged users in Linux systems where docker 
+of Docker containers by non-privileged users in Linux systems where Docker 
 is not available. It can be used to access and execute the content of 
 docker containers in Linux batch systems and interactive clusters that 
-are managed by other entities such as grid infrastructures or externaly 
-managed batch or interactive systems.
+are managed by other entities such as grid infrastructures, HPC clusters
+or other externaly managed batch or interactive systems.
 
 udocker does not require any type of privileges nor the deployment of 
 services by system administrators. It can be downloaded and executed 
 entirely by the end user. 
 
 udocker is a wrapper around several tools and technologies to mimic a 
-subset of the docker capabilities including pulling images and running 
-then with minimal functionality. It is nmainly meant to execute user 
-applications packaged in docker containers.
+subset of the Docker capabilities including pulling images and running 
+then with minimal functionality. It is mainly meant to execute user 
+applications packaged in Docker containers. 
+
+We recommend the use of Docker whenever possible, but when it is 
+unavailable udocker can be the right tool to run your applications.
 
 ## 1. INTRODUCTION
 
 ### 1.1. How does it work
 udocker is a simple tool written in Python, it has a minimal set of 
 dependencies so that can be executed in a wide range of Linux systems. 
-udocker does not make use of docker nor requires its installation.
+udocker does not make use of Docker nor requires its installation.
 
 udocker "executes" the containers by simply providing a chroot like 
 environment to the extracted container. udocker is meant to integrate
 several technologies and approches hence providing an integrated 
 environment that offers several execution options. This version
-provides two different execution engines based on PRoot and Fakechroot.
+provides execution engines based on PRoot, Fakechroot, and runC
+as methods to execute Docker containers without privileges.
 
 
 ### 1.2. Limitations
@@ -45,16 +49,16 @@ examples of operations that are not possible:
 
 Other limitations:
 
-* the current implementation is limited to the pulling of docker images and its execution;
-* the actual containers should be built using docker and dockerfiles;
-* udocker does not provide all the docker features, and is not intended as a docker replacement;
+* the current implementation is limited to the pulling of Docker images and its execution;
+* the actual containers should be built using Docker and dockerfiles;
+* udocker does not provide all the Docker features, and is not intended as a Docker replacement;
 * debugging and tracing in the PRoot engine will not work;
 * the Fakechroot engine does not support execution of statically linked executables;
 * udocker is mainly oriented at providing a run-time environment for containers execution in user space.
 
 ### 1.3. Security
 Because of the limitations described in section 1.2 udocker does not offer 
-isolation features such as the ones offered by docker. If the containers
+isolation features such as the ones offered by Docker. If the containers
 content is not trusted then they should not be executed within udocker as
 they will run inside the user environment. 
 
@@ -87,7 +91,7 @@ no root privileges are involved. This feature enables tools that do not
 require privileges but that check the user id to work properly. This enables
 for instance software installation with rpm and yum inside the container.
 
-Similarly to docker, the login credentials for private repositories are stored 
+Similarly to Docker, the login credentials for private repositories are stored 
 in a file and can be easily accessed. Logout can be used to delete the credentials. 
 If the host system is not trustable the login feature should not be used as it may
 expose the login credentials.
@@ -97,7 +101,7 @@ The basic flow with udocker is:
 
 1. The user downloads udocker to its home directory and executes it
 2. Upon the first execution udocker will download additional tools 
-3. Container images can be fetched from dockerhub with `pull`
+3. Container images can be fetched from Docker Hub with `pull`
 4. Containers can be created from the images with `create`
 5. Containers can then be executed with `run`
 
@@ -116,7 +120,7 @@ system installation. For further information see the installation manual.
 ## 3. COMMANDS
 
 ### 3.1. Syntax
-The udocker syntax is very similar to docker. Since version 1.0.1 the udocker
+The udocker syntax is very similar to Docker. Since version 1.0.1 the udocker
 preferred command name changed from udocker.py to udocker. A symbolic link
 between udocker and udocker.py is provided when installing with the distribution
 tarball.
@@ -157,7 +161,7 @@ Command specific help can be obtained with:
 ```
   udocker search [OPTIONS] REPO/IMAGE:TAG
 ```
-Search dockerhub for container images. The command displays containers one
+Search Docker Hub for container images. The command displays containers one
 page at a time and pauses for user input.
 
 Options:
@@ -175,8 +179,8 @@ Examples:
 ```
   udocker pull [OPTIONS] REPO/IMAGE:TAG
 ```
-Pull a container image from a docker repository by defaulkt uses dockerhub. 
-The associated layers and metadata are downloaded from dockerhub. Requires 
+Pull a container image from a Docker repository by defaulkt uses Docker Hub. 
+The associated layers and metadata are downloaded from Docker Hub. Requires 
 python pycurl or the presence of the curl command.
 
 Options:
@@ -202,7 +206,7 @@ Examples:
   udocker images [OPTIONS]
 ```
 List images available in the local repository, these are images pulled
-form dockerhub, and/or load or imported from files.
+form Docker Hub, and/or load or imported from files.
 
 Options:
 
@@ -219,7 +223,7 @@ Examples:
   udocker create [OPTIONS] REPO/IMAGE:TAG
 ```
 Extract a container from an image available in the local repository.
-Requires that the image has been previously pulled from dockerhub,
+Requires that the image has been previously pulled from Docker Hub,
 and/or load or imported into the local repository from a file.
 use `udocker images` to see the images available to create.
 If sucessful the comand prints the id of the extracted container.
@@ -345,7 +349,7 @@ Examples:
   udocker import [OPTIONS] TARBALL REPO/IMAGE:TAG
 ```
 Imports into the local repository a tarball containing a directory tree of
-a container. Can be used to import containers previously exported by docker
+a container. Can be used to import containers previously exported by Docker
 with `docker export`.
 
 Options:
@@ -362,10 +366,10 @@ Examples:
 ```
   udocker load -i IMAGE-FILE
 ```
-Loads into the local repository a tarball containing a docker image with
+Loads into the local repository a tarball containing a Docker image with
 its layers and metadata. This is equivallent to pulling an image from
-dockerhub but instead loading from a locally available file. It can be
-used to load a docker image saved with `docker save`. A typical saved
+Docker Hub but instead loading from a locally available file. It can be
+used to load a Docker image saved with `docker save`. A typical saved
 image is a tarball containing additional tar files corresponding to the
 layers and metadata.
 
@@ -452,7 +456,7 @@ Options:
 
 Examples:
 ```
-  # Pull fedora from dockerhub
+  # Pull fedora from Docker Hub
   udocker pull fedora
 
   # create the container named myfed from the image named fedora
@@ -507,7 +511,7 @@ Examples:
 ```
   udocker login [--username=USERNAME] [--password=PASSWORD] [--registry=REGISTRY]
 ```
-Login into a docker registry using v2 API. Only basic authentication
+Login into a Docker registry using v2 API. Only basic authentication
 using username and password is supported. The username and password
 can be prompted or specified in the command line. The username is the
 username in the repository, not the associated email address.
@@ -642,7 +646,7 @@ compiler and a local MPI installation such as Open MPI.
 In what follows we describe the steps to execute openQCD using udocker in a HPC system with a batch
 system (e.g. SLURM). An analogous procedure can be followed for other MPI applications.
 
-A container image of openQCD can be downloaded from the dockerhub repository. From this image a
+A container image of openQCD can be downloaded from the Docker Hub repository. From this image a
 container can be extracted to the filesystem (using udocker create) as described below.
 
 ```
@@ -725,11 +729,12 @@ In UDOCKER
 ## Issues
 
 When experiencing issues in the default execution mode you may try
-to setup the container to execute using mode P2 or one of the F or 
-R modes. See section 3.23 for information on changing execution modes.
+to setup the container to execute using mode P2 or one of the Fn or 
+Rn modes. See section 3.23 for information on changing execution modes.
 
 ## Aknowlegments
 
+* Docker https://www.docker.com/
 * PRoot http://proot.me
 * Fakechroot https://github.com/dex4er/fakechroot/wiki
 * runC https://runc.io/
