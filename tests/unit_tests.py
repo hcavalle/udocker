@@ -37,7 +37,7 @@ try:
     import udocker
 except ImportError:
     sys.path.append(".")
-    sys.path.append("..")
+    sys.path.append("../")
     import udocker
 
 __author__ = "udocker@lip.pt"
@@ -314,6 +314,7 @@ class KeyStoreTestCase(unittest.TestCase):
         set_env()
 
     def _init(self):
+        # pylint: disable=attribute-defined-outside-init
         """Common variables."""
         self.url = u'https://xxx'
         self.email = u'user@domain'
@@ -365,7 +366,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.json.dump')
     @mock.patch('udocker.os.umask')
     def test_04__write_all(self, mock_umask, mock_jdump,
-                          mock_config, mock_verks):
+                           mock_config, mock_verks):
         # pylint: disable=W0612,W0613,W0212
         """Test KeyStore()._write_all() write all credentials to file."""
         self._init()
@@ -749,16 +750,15 @@ class UdockerToolsTestCase(unittest.TestCase):
     @mock.patch('udocker.UdockerTools.__init__')
     @mock.patch('udocker.FileUtil')
     @mock.patch('udocker.GetURL')
-    @mock.patch('udocker.FileUtil.mktmp')
     @mock.patch.object(udocker.UdockerTools, '_install')
     @mock.patch.object(udocker.UdockerTools, '_verify_version')
     @mock.patch.object(udocker.UdockerTools, '_instructions')
     @mock.patch.object(udocker.UdockerTools, '_download')
     @mock.patch.object(udocker.UdockerTools, 'is_available')
     def test_03__install(self, mock_is, mock_down, mock_instr, mock_ver,
-                        mock_install, mock_mktmp, mock_geturl,
-                        mock_futil, mock_init, mock_localrepo, mock_msg, mock_exists):
-        # pylint: disable=W0612,W0613,W0212
+                         mock_install, mock_geturl, mock_futil, mock_init,
+                         mock_localrepo, mock_msg, mock_exists):
+        # pylint: disable=W0212,too-many-statements
         """Test UdockerTools.install()."""
         mock_msg.level = 0
         mock_futil.return_value.mktmp.return_value = "filename_tmp"
@@ -857,7 +857,7 @@ class UdockerToolsTestCase(unittest.TestCase):
     @mock.patch('udocker.FileUtil')
     @mock.patch('udocker.UdockerTools.__init__')
     def test_04__verify_version(self, mock_init, mock_futil, mock_call,
-                               mock_msg, mock_versioneq):
+                                mock_msg, mock_versioneq):
         # pylint: disable=W0212
         """Test UdockerTools._verify_version()."""
         mock_init.return_value = None
@@ -1244,7 +1244,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.listdir')
     @mock.patch.object(udocker.LocalRepository, '_inrepository')
     def test_21__remove_layers(self, mock_in,
-                              mock_listdir, mock_islink, mock_readlink):
+                               mock_listdir, mock_islink, mock_readlink):
         # pylint: disable=W0212
         """Test LocalRepository()._remove_layers()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
@@ -1357,7 +1357,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
         mock_futil.return_value.isdir.return_value = True
         mock_listdir.return_value = ["FILE1", "FILE2"]
         mock_is.return_value = False
-        self.iter = 0
+        self.iter = 0  # pylint: disable=attribute-defined-outside-init
         mock_isdir.side_effect = self._sideffect_test_23
         status = localrepo._get_tags("CONTAINERS_DIR")
         expected_status = [('CONTAINERS_DIR', 'FILE1'),
@@ -1724,15 +1724,15 @@ class LocalRepositoryTestCase(unittest.TestCase):
         mock_listdir.return_value = ["file"]
         mock_islink.return_value = True
         filename = "file"
-        dir = "/tmp"
+        folder = "/tmp"
 
-        out = localrepo._find(filename, dir)
+        out = localrepo._find(filename, folder)
         self.assertEqual(out, ["/tmp/file"])
 
         mock_islink.return_value = False
         mock_isdir.return_value = False
 
-        out = localrepo._find(filename, dir)
+        out = localrepo._find(filename, folder)
         self.assertEqual(out, [])
 
     @mock.patch('udocker.FileUtil')
@@ -1832,9 +1832,11 @@ class LocalRepositoryTestCase(unittest.TestCase):
         """Test."""
         pass
 
+    @mock.patch('udocker.Msg')
     @mock.patch.object(udocker.LocalRepository, '_load_structure')
-    def test_48_verify_image(self, mock_lstruct):
+    def test_48_verify_image(self, mock_lstruct, mock_msg):
         """Test LocalRepository().verify_image()."""
+        mock_msg.level = 0
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         localrepo.verify_image()
         self.assertTrue(mock_lstruct.called)
@@ -2455,6 +2457,7 @@ class FileBindTestCase(unittest.TestCase):
         set_env()
 
     def _init(self):
+        # pylint: disable=attribute-defined-outside-init
         """Configure variables."""
         self.bind_dir = "/.bind_host_files"
         self.orig_dir = "/.bind_orig_files"
@@ -2869,7 +2872,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     @mock.patch('udocker.ExecutionEngineCommon._uid_gid_from_str')
     def test_10__setup_container_user(self, mock_ugfs, mock_cruser,
                                       mock_local, mock_nix, mock_msg):
-        # pylint: disable=W0212
+        # pylint: disable=W0212,too-many-statements
         """Test ExecutionEngineCommon()._setup_container_user()."""
         self._init()
         mock_msg.level = 0
@@ -2962,7 +2965,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_11__create_user(self, mock_local, mock_nix, mock_msg,
                              mock_futil, mock_groups):
-        # pylint: disable=W0612,W0613,W0212
+        # pylint: disable=W0612,W0613,W0212,too-many-statements
         """Test ExecutionEngineCommon()._create_user()."""
         self._init()
         mock_msg.level = 0
@@ -3636,7 +3639,7 @@ class DockerLocalFileAPITestCase(unittest.TestCase):
         mock_local.load_json.return_value = {"X": "", }
         structure = dlocapi._load_structure("/tmp")
         expected = {'layers': {"x" * 64: {'json': {'X': ''},
-                    'json_f': '/tmp/' + "x" * 64 + '/json'}}}
+                                          'json_f': '/tmp/' + "x" * 64 + '/json'}}}
         self.assertEqual(structure, expected)
         #
         dlocapi = udocker.DockerLocalFileAPI(mock_local)
@@ -3645,7 +3648,7 @@ class DockerLocalFileAPITestCase(unittest.TestCase):
         mock_local.load_json.return_value = {"X": "", }
         structure = dlocapi._load_structure("/tmp")
         expected = {'layers': {"x" * 64: {
-                    'layer_f': '/tmp/' + "x" * 64 + '/layer'}}}
+            'layer_f': '/tmp/' + "x" * 64 + '/layer'}}}
         self.assertEqual(structure, expected)
 
     @mock.patch('udocker.LocalRepository')
@@ -4485,7 +4488,6 @@ class UdockerTestCase(unittest.TestCase):
         status = udoc.do_run(mock_cmdp)
         self.assertFalse(status)
 
-        # TODO(lalves): Review this tests
         # udoc = udocker.Udocker(mock_local)
         # mock_cmdp.missing_options.return_value = False
         # mock_cmdp.get.side_effect = ["", "", "" "", "", ]
