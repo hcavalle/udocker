@@ -169,7 +169,7 @@ example builds the tarball from the master repository.
 ```
   git clone https://github.com/indigo-dc/udocker
   cd udocker/utils
-  sh build_tarball.sh
+  bash build_tarball.sh
 ```
  
 ## 7. DIRECTORIES
