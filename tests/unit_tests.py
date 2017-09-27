@@ -2149,7 +2149,7 @@ class ChkSUMTestCase(unittest.TestCase):
         self.assertEqual(cksum._sha256_call, cksum._hashlib_sha256)
 
     @mock.patch('udocker.Msg')
-    def test_01_sha256(self, mock_msg):
+    def test_02_sha256(self, mock_msg):
         """Test ChkSUM().sha256()"""
         self._init()
         mock_call = mock.MagicMock()
@@ -2166,7 +2166,7 @@ class ChkSUMTestCase(unittest.TestCase):
         self.assertFalse(status)
 
     @mock.patch('udocker.Msg')
-    def test_02_hashlib_sha256(self, mock_msg):
+    def test_03_hashlib_sha256(self, mock_msg):
         """Test ChkSUM()._hashlib_sha256()"""
         sha256sum = \
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -2181,7 +2181,7 @@ class ChkSUMTestCase(unittest.TestCase):
 
     @mock.patch('udocker.Uprocess.get_output')
     @mock.patch('udocker.Msg')
-    def test_03_openssl_sha256(self, mock_msg, mock_subproc):
+    def test_04_openssl_sha256(self, mock_msg, mock_subproc):
         """Test ChkSUM()._openssl_sha256()"""
         self._init()
         udocker.Msg = mock_msg
@@ -4319,8 +4319,8 @@ class UdockerTestCase(unittest.TestCase):
         mock_cmdp.get.side_effect = ["", "", "" "", "", ]
         status = udoc.do_run(mock_cmdp)
         self.assertFalse(status)
-        #
-        # TODO (lalves): Review this tests
+
+        # #TODO (lalves): Review this tests
         # udoc = udocker.Udocker(mock_local)
         # mock_cmdp.missing_options.return_value = False
         # mock_cmdp.get.side_effect = ["", "", "" "", "", ]
@@ -4328,7 +4328,7 @@ class UdockerTestCase(unittest.TestCase):
         # mock_eng.return_value.run.return_value = True
         # status = udoc.do_run(mock_cmdp)
         # self.assertTrue(status)
-        # #
+        #
         # udoc = udocker.Udocker(mock_local)
         # mock_cmdp.missing_options.return_value = False
         # mock_cmdp.get.side_effect = ["", "", "" "", "", ]
