@@ -2026,9 +2026,11 @@ class DockerIoAPITestCase(unittest.TestCase):
         uia.set_index("https://index.docker.io/v1")
         self.assertEqual(uia.index_url, "https://index.docker.io/v1")
 
+    @mock.patch('udocker.Msg')
     @mock.patch('udocker.LocalRepository')
-    def test_05_is_repo_name(self, mock_local):
+    def test_05_is_repo_name(self, mock_local, mock_msg):
         self._init()
+        mock_msg.level = 0
         #
         uia = udocker.DockerIoAPI(mock_local)
         self.assertFalse(uia.is_repo_name(""))
@@ -2399,15 +2401,18 @@ class FileBindTestCase(unittest.TestCase):
         self.assertTrue(fb.container_orig_dir, fb.container_dir + self.orig_dir)
         self.assertIsNone(fb.host_bind_dir)
 
+    @mock.patch('udocker.Msg')
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.isdir')
     @mock.patch('udocker.os.path.realpath')
     @mock.patch('udocker.FileUtil')
-    def test_02_setup(self, mock_futil, mock_realpath, mock_isdir, mock_local):
+    def test_02_setup(self, mock_futil, mock_realpath, mock_isdir,
+                      mock_local, mock_msg):
         """Test FileBind().setup().
         Prepare container for FileBind"""
 
         self._init()
+        mock_msg.level = 0
 
         container_id = "CONTAINERID"
         mock_realpath.return_value = "/tmp"
