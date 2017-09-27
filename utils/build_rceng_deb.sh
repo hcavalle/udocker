@@ -111,38 +111,41 @@ create_rules()
 #!/usr/bin/make -f
 # -*- makefile -*-
 
+SHELL := /bin/bash
+
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
 %:
 	dh $@ --buildsystem=golang --with=golang
 
-.ONESHELL:
+#.ONESHELL:
 override_dh_auto_build:
-	echo "PWD `pwd`"
-	mkdir -p obj-x86_64-linux-gnu/src/github.com/opencontainers
-	cd obj-x86_64-linux-gnu/src/github.com/opencontainers
-	ln -s ../../../.. runc
-	cd runc
+	echo "PWD `pwd`"                                            ; \
+	mkdir -p obj-x86_64-linux-gnu/src/github.com/opencontainers ; \
+	cd obj-x86_64-linux-gnu/src/github.com/opencontainers       ; \
+	ln -s ../../../.. runc                                      ; \
+	cd runc                                                     ; \
+        [ -d /usr/lib/go-1.6 ] && export PATH=/usr/lib/go-1.6/bin:$$PATH   ; \
 	GOPATH=$$(pwd)/obj-x86_64-linux-gnu make
 
 override_dh_auto_test:
 	echo overriding dh_auto_test
 
-.ONESHELL:
+#.ONESHELL:
 override_dh_auto_install:
-	if [ "$$DEB_TARGET_ARCH" = "amd64" ]; then 
-	    RUNC="runc-x86_64"
-	elif [ "$$DEB_TARGET_ARCH" = "i386" ]; then
-	    RUNC="runc-i386"
-	elif [ "$$DEB_TARGET_ARCH" = "arm64" ]; then
-	    RUNC="runc-arm64"
-	elif [ "$${DEB_TARGET_ARCH:0:3}" = "arm" ]; then
-	    RUNC="runc-arm"
-	else
-	    RUNC="runc"
-	fi
-	install -g 0 -o 0 -m 755 -D runc debian/udocker-rceng/usr/lib/udocker/$$RUNC
+	if [ "$$DEB_TARGET_ARCH" = "amd64" ]; then       \
+	    RUNC="runc-x86_64" ;                         \
+	elif [ "$$DEB_TARGET_ARCH" = "i386" ]; then      \
+	    RUNC="runc-i386" ;                           \
+	elif [ "$$DEB_TARGET_ARCH" = "arm64" ]; then     \
+	    RUNC="runc-arm64" ;                          \
+	elif [ "$${DEB_TARGET_ARCH:0:3}" = "arm" ]; then \
+	    RUNC="runc-arm" ;                            \
+	else                                             \
+	    RUNC="runc" ;                                \
+	fi ;                                             \
+	install -g 0 -o 0 -m 755 -D runc debian/udocker-rceng/usr/lib/udocker/$$RUNC ; \
 	/bin/rm runc
 M_RULES
 }

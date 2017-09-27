@@ -86,14 +86,22 @@ create_source_tarball()
     pushd $TMP_DIR
     /bin/rm -Rf ${BASE_DIR}-${VERSION}
     /bin/rm -Rf udocker_tarball.tgz
-    wget -q -Oudocker_tarball.tgz $UDOCKER_TARBALL_URL
+    curl $UDOCKER_TARBALL_URL > udocker_tarball.tgz
     /bin/mkdir ${BASE_DIR}-${VERSION}
     pushd ${BASE_DIR}-${VERSION}
     tar --wildcards -xzvf ../udocker_tarball.tgz \
-                          udocker_dir/lib/libfakechroot*
-    git clone --depth=1 --branch=2.18 https://github.com/dex4er/fakechroot
+                          udocker_dir/lib/libfakechroot* udocker_dir/bin/patchelf*
+    #git clone --depth=1 --branch=2.18 https://github.com/dex4er/fakechroot
+    git clone https://github.com/dex4er/fakechroot
+    pushd fakechroot
+    git checkout 2.18
+    popd
     patch_fakechroot_source
-    git clone --depth=1 --branch=0.9 https://github.com/NixOS/patchelf.git
+    #git clone --depth=1 --branch=0.9 https://github.com/NixOS/patchelf.git
+    git clone https://github.com/NixOS/patchelf.git
+    pushd patchelf
+    git checkout 0.9
+    popd
     patch_patchelf_source1
     patch_patchelf_source2
 
@@ -123,8 +131,9 @@ Group: Applications/Emulators
 Provides: %{name} = %{version}
 URL: https://www.gitbook.com/book/indigo-dc/udocker/details
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-BuildRequires: kernel, kernel-devel, fileutils, findutils, bash, tar, gzip, wget
-Requires: glibc, udocker
+BuildRequires: kernel, kernel-devel, fileutils, findutils, bash, tar, gzip, curl
+Requires: udocker, glibc-devel
+AutoReqProv: no
 
 %define debug_package %{nil}
 
@@ -140,13 +149,14 @@ cd %{_builddir}
 tar xzvf $SOURCE_TARBALL
 cd %{name}-%{version}
 cd patchelf
-bash ./bootstrap.sh
-bash ./configure
-make
+#bash ./bootstrap.sh
+#bash ./configure
+#make
 
 %install
 rm -rf %{buildroot}
-install -m 755 -D %{_builddir}/%{name}-%{version}/patchelf/src/patchelf %{buildroot}/%{_libexecdir}/udocker/patchelf-x86_64
+#install -m 755 -D %{_builddir}/%{name}-%{version}/patchelf/src/patchelf %{buildroot}/%{_libexecdir}/udocker/patchelf-x86_64
+install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/bin/patchelf-x86_64 %{buildroot}/%{_libexecdir}/udocker/patchelf-x86_64
 echo "%{_libexecdir}/udocker/patchelf-x86_64" > %{_builddir}/%{name}-%{version}/files.lst
 install -m 755 -D %{_builddir}/%{name}-%{version}/udocker_dir/lib/libfakechroot-CentOS-6-x86_64.so %{buildroot}/%{_datarootdir}/udocker/lib/libfakechroot-CentOS-6-x86_64.so
 echo "%{_datarootdir}/udocker/lib/libfakechroot-CentOS-6-x86_64.so" >> %{_builddir}/%{name}-%{version}/files.lst

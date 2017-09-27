@@ -61,7 +61,10 @@ create_source_tarball()
     /bin/rm $SOURCE_TARBALL 2> /dev/null
     pushd $TMP_DIR
     /bin/rm -Rf PRoot ${BASE_DIR}-${VERSION}
-    git clone --branch v5.1.0 --depth=1 https://github.com/proot-me/PRoot
+    git clone https://github.com/proot-me/PRoot
+    pushd PRoot
+    git checkout v5.1.0
+    popd
     /bin/mv PRoot ${BASE_DIR}-${VERSION}
     patch_proot_source2
     patch_proot_source3
@@ -173,25 +176,27 @@ create_rules()
 #!/usr/bin/make -f
 # -*- makefile -*-
 
+SHELL := /bin/bash
+
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
 %:
 	dh $@ --sourcedirectory=src
 
-.ONESHELL:
+#.ONESHELL:
 override_dh_auto_install:
-	if [ "$$DEB_TARGET_ARCH" = "amd64" ]; then 
-	    PROOT="proot-x86_64"
-	elif [ "$$DEB_TARGET_ARCH" = "i386" ]; then
-	    PROOT="proot-i386"
-	elif [ "$$DEB_TARGET_ARCH" = "arm64" ]; then
-	    PROOT="proot-arm64"
-	elif [ "$${DEB_TARGET_ARCH:0:3}" = "arm" ]; then
-	    PROOT="proot-arm"
-	else
-	    PROOT="proot"
-	fi
+	if [ "$$DEB_TARGET_ARCH" = "amd64" ]; then      \
+	    PROOT="proot-x86_64" ;                      \
+	elif [ "$$DEB_TARGET_ARCH" = "i386" ]; then     \
+	    PROOT="proot-i386"   ;                      \
+	elif [ "$$DEB_TARGET_ARCH" = "arm64" ]; then    \
+	    PROOT="proot-arm64"  ;                      \
+	elif [ "${DEB_TARGET_ARCH:0:3}" = "arm" ]; then \
+	    PROOT="proot-arm"    ;                      \
+	else                                            \
+	    PROOT="proot"        ;                      \
+	fi ;                                            \
 	install -g 0 -o 0 -m 755 -D src/proot debian/udocker-preng/usr/lib/udocker/$$PROOT
 M_RULES
 }

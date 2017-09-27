@@ -83,7 +83,7 @@ create_source_tarball()
     pushd $TMP_DIR
     /bin/rm -Rf ${BASE_DIR}-${VERSION}
     /bin/rm -Rf udocker_tarball.tgz
-    wget -q -Oudocker_tarball.tgz $UDOCKER_TARBALL_URL
+    curl $UDOCKER_TARBALL_URL > udocker_tarball.tgz
     /bin/mkdir ${BASE_DIR}-${VERSION}
     pushd ${BASE_DIR}-${VERSION}
     tar --wildcards -xzvf ../udocker_tarball.tgz \
