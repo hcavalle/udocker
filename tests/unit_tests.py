@@ -25,12 +25,13 @@ import subprocess
 import sys
 import unittest
 
-import mock
 
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
+
+import mock
 
 try:
     import udocker
@@ -335,6 +336,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.Config')
     @mock.patch('udocker.KeyStore._verify_keystore')
     def test_02_shred(self, mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore()._shred() erase file content."""
         udocker.Config = mock_config
         udocker.Config.tmpdir = "/tmp"
@@ -346,6 +348,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.KeyStore._verify_keystore')
     @mock.patch('udocker.os.stat')
     def test_03_shred(self, mock_stat, mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore()._shred() erase file content."""
         udocker.Config = mock_config
         udocker.Config.tmpdir = "/tmp"
@@ -360,6 +363,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.os.umask')
     def test_04_write_all(self, mock_umask, mock_jdump,
                           mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore()._write_all() write all credentials to file."""
         self._init()
         udocker.Config = mock_config
@@ -374,6 +378,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.KeyStore._verify_keystore')
     @mock.patch('udocker.KeyStore._read_all')
     def test_05_get(self, mock_readall, mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore().get() get credential for url from file."""
         self._init()
         udocker.Config = mock_config
@@ -390,6 +395,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.KeyStore._read_all')
     def test_06_put(self, mock_readall, mock_writeall, mock_shred,
                     mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore().put() put credential for url to file."""
         self._init()
         udocker.Config = mock_config
@@ -407,6 +413,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.KeyStore._read_all')
     def test_07_delete(self, mock_readall, mock_writeall, mock_shred,
                        mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore().delete() delete credential for url from file."""
         self._init()
         udocker.Config = mock_config
@@ -422,6 +429,7 @@ class KeyStoreTestCase(unittest.TestCase):
     @mock.patch('udocker.KeyStore._shred')
     def test_07_erase(self, mock_shred, mock_unlink,
                       mock_config, mock_verks):
+        # pylint: disable=W0612,W0613
         """Test KeyStore().erase() erase credentials file."""
         self._init()
         udocker.Config = mock_config
@@ -528,6 +536,7 @@ class FileUtilTestCase(unittest.TestCase):
     def test_04_remove_file(self, mock_uid, mock_isdir, mock_isfile,
                             mock_islink, mock_remove, mock_msg,
                             mock_exists, mock_realpath, mock_config):
+        # pylint: disable=W0612,W0613
         """Test FileUtil.remove() with plain files."""
         mock_uid.return_value = os.getuid()
         # file does not exist (regression of #50)
@@ -574,6 +583,7 @@ class FileUtilTestCase(unittest.TestCase):
     def test_05_remove_dir(self, mock_uid, mock_isfile, mock_islink,
                            mock_isdir, mock_call, mock_msg, mock_exists,
                            mock_config):
+        # pylint: disable=W0612,W0613
         """Test FileUtil.remove() with directories."""
         mock_uid.return_value = os.getuid()
         mock_isfile.return_value = False
@@ -719,6 +729,7 @@ class UdockerToolsTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.Config')
     def test_01_init(self, mock_config, mock_localrepo, mock_geturl):
+        # pylint: disable=W0612,W0613
         """Test UdockerTools() constructor."""
         udocker.Config = mock_config
         udocker.Config.tmpdir = "/tmp"
@@ -733,7 +744,6 @@ class UdockerToolsTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.UdockerTools.__init__')
     @mock.patch('udocker.FileUtil')
-    @mock.patch('udocker.subprocess.call')
     @mock.patch('udocker.GetURL')
     @mock.patch('udocker.FileUtil.mktmp')
     @mock.patch.object(udocker.UdockerTools, '_install')
@@ -742,9 +752,9 @@ class UdockerToolsTestCase(unittest.TestCase):
     @mock.patch.object(udocker.UdockerTools, '_download')
     @mock.patch.object(udocker.UdockerTools, 'is_available')
     def test_03_install(self, mock_is, mock_down, mock_instr, mock_ver,
-                        mock_install,
-                        mock_mktmp, mock_geturl, mock_call, mock_futil,
-                        mock_init, mock_localrepo, mock_msg, mock_exists):
+                        mock_install, mock_mktmp, mock_geturl,
+                        mock_futil, mock_init, mock_localrepo, mock_msg, mock_exists):
+        # pylint: disable=W0612,W0613
         """Test UdockerTools.install()."""
         mock_msg.level = 0
         mock_futil.return_value.mktmp.return_value = "filename_tmp"
@@ -1087,6 +1097,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch.object(udocker.LocalRepository, 'cd_container')
     def test_15_iswriteable_container(self, mock_cd, mock_exists,
                                       mock_isdir, mock_access):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().iswriteable_container()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
@@ -1116,6 +1127,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.path.exists')
     def test_16_del_container_name(self, mock_exists, mock_msg,
                                    mock_namevalid):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().del_container_name()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1146,6 +1158,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.symlink')
     @mock.patch('udocker.os.path.exists')
     def test_17__symlink(self, mock_exists, mock_symlink):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository()._symlink()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         mock_exists.return_value = True
@@ -1160,6 +1173,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch.object(udocker.LocalRepository, '_symlink')
     @mock.patch.object(udocker.LocalRepository, 'cd_container')
     def test_18_set_container_name(self, mock_cd, mock_slink, mock_exists):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().set_container_name()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         container_id = "d2578feb-acfc-37e0-8561-47335f85e46a"
@@ -1204,6 +1218,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.makedirs')
     @mock.patch('udocker.os.path.exists')
     def test_20_setup_container(self, mock_exists, mock_makedirs):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().setup_container()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         mock_exists.return_value = True
@@ -1268,6 +1283,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch.object(udocker.LocalRepository, '_remove_layers')
     @mock.patch.object(udocker.LocalRepository, 'cd_imagerepo')
     def test_22_del_imagerepo(self, mock_cd, mock_rmlayers, mock_futil):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository()._del_imagerepo()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1288,6 +1304,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
         self.assertTrue(status)
 
     def _sideffect_test_23(self, arg):
+        # pylint: disable=W0612,W0613
         """Side effect for isdir on test 23 _get_tags()."""
         if self.iter < 3:
             self.iter += 1
@@ -1344,6 +1361,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch.object(udocker.LocalRepository, '_symlink')
     def test_24_add_image_layer(self, mock_slink, mock_exists,
                                 mock_islink):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().add_image_layer()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1417,6 +1435,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.makedirs')
     @mock.patch('udocker.os.path.exists')
     def test_27_set_version(self, mock_exists, mock_makedirs, mock_listdir):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().set_version()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1443,6 +1462,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.os.path.exists')
     def test_28_get_image_attributes(self, mock_exists, mock_loadjson,
                                      mock_savejson):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().get_image_attributes()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1488,6 +1508,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.json.dump')
     @mock.patch('udocker.os.path.exists')
     def test_29_save_json(self, mock_exists, mock_jsondump):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().save_json()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1518,6 +1539,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.json.load')
     @mock.patch('udocker.os.path.exists')
     def test_30_load_json(self, mock_exists, mock_jsonload):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().load_json()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         #
@@ -1643,6 +1665,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.FileUtil')
     @mock.patch('udocker.os.path.isfile')
     def test_37__is_tag(self, mock_isfile, mock_futil):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository()._is_tag().
 
         Does this directory contain an image tag ?
@@ -1663,6 +1686,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     @mock.patch('udocker.os.path.exists')
     def test_38_cd_imagerepo(self, mock_local, mock_exists):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().cd_imagerepo()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         localrepo.reposdir = "/tmp"
@@ -1762,6 +1786,7 @@ class LocalRepositoryTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     @mock.patch.object(udocker.LocalRepository, 'cd_container')
     def test_43_get_layers(self, mock_local, mock_cd):
+        # pylint: disable=W0612,W0613
         """Test LocalRepository().get_layers()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         localrepo.get_layers("IMAGE", "TAG")
@@ -1786,9 +1811,8 @@ class LocalRepositoryTestCase(unittest.TestCase):
         """Test."""
         pass
 
-    @mock.patch('udocker.LocalRepository')
     @mock.patch.object(udocker.LocalRepository, '_load_structure')
-    def test_48_verify_image(self, mock_local, mock_lstruct):
+    def test_48_verify_image(self, mock_lstruct):
         """Test LocalRepository().verify_image()."""
         localrepo = self._localrepo(UDOCKER_TOPDIR)
         localrepo.verify_image()
@@ -1872,12 +1896,14 @@ class GetURLTestCase(unittest.TestCase):
         udocker.Config.http_insecure = 0
 
     def _get(self, *args, **kwargs):
+        # pylint: disable=W0612,W0613
         """Mock for pycurl.get."""
         return args[0]
 
     @mock.patch('udocker.Msg')
     @mock.patch('udocker.GetURL._select_implementation')
     def test_01_init(self, mock_simplement, mock_msg):
+        # pylint: disable=W0612,W0613
         """Test GetURL() constructor."""
         self._init()
         mock_msg.level = 0
@@ -2408,16 +2434,16 @@ class FileBindTestCase(unittest.TestCase):
 
         container_id = "CONTAINERID"
         mock_realpath.return_value = "/tmp"
-        fb = udocker.FileBind(mock_local, container_id)
-        self.assertEqual(fb.localrepo, mock_local)
-        self.assertEqual(fb.container_id, container_id)
+        fbind = udocker.FileBind(mock_local, container_id)
+        self.assertEqual(fbind.localrepo, mock_local)
+        self.assertEqual(fbind.container_id, container_id)
         self.assertTrue(mock_realpath.called)
-        self.assertTrue(fb.container_root, fb.container_dir + "/ROOT")
+        self.assertTrue(fbind.container_root, fbind.container_dir + "/ROOT")
         self.assertTrue(
-            fb.container_bind_dir, fb.container_root + self.bind_dir)
+            fbind.container_bind_dir, fbind.container_root + self.bind_dir)
         self.assertTrue(
-            fb.container_orig_dir, fb.container_dir + self.orig_dir)
-        self.assertIsNone(fb.host_bind_dir)
+            fbind.container_orig_dir, fbind.container_dir + self.orig_dir)
+        self.assertIsNone(fbind.host_bind_dir)
 
     @mock.patch('udocker.Msg')
     @mock.patch('udocker.LocalRepository')
@@ -2470,21 +2496,21 @@ class FileBindTestCase(unittest.TestCase):
         mock_futil.return_value.remove.return_value = True
 
         mock_isdir.return_value = False
-        fb = udocker.FileBind(mock_local, container_id)
-        status = fb.restore()
+        fbind = udocker.FileBind(mock_local, container_id)
+        status = fbind.restore()
         self.assertTrue(mock_isdir.called)
         self.assertTrue(status)
 
         mock_isdir.return_value = True
-        fb = udocker.FileBind(mock_local, container_id)
-        status = fb.restore()
+        fbind = udocker.FileBind(mock_local, container_id)
+        status = fbind.restore()
         self.assertTrue(mock_listdir.called)
         self.assertFalse(status)
 
         mock_listdir.return_value = ["is_file1", "is_dir", "is_file2"]
         mock_isfile.side_effect = [True, False, True]
         mock_islink.side_effect = [True, False, False]
-        status = fb.restore()
+        status = fbind.restore()
         self.assertTrue(mock_isfile.called)
         self.assertTrue(mock_islink.called)
         self.assertFalse(status)
@@ -2507,15 +2533,15 @@ class FileBindTestCase(unittest.TestCase):
         files_list = ["file1", "dir1", "file2"]
 
         mock_futil.return_value.mktmp.return_value = "tmpDir"
-        fb = udocker.FileBind(mock_local, container_id)
-        fb.start(files_list)
+        fbind = udocker.FileBind(mock_local, container_id)
+        fbind.start(files_list)
         self.assertTrue(mock_futil.called)
 
         mock_isfile.side_effect = [True, False, True]
         self.assertTrue(mock_isfile.called)
         self.assertTrue(mock_exists.called)
 
-        self.assertIsInstance(fb.start(files_list), tuple)
+        self.assertIsInstance(fbind.start(files_list), tuple)
 
     @mock.patch('udocker.LocalRepository')
     def test_05_finish(self, mock_local):
@@ -2540,9 +2566,9 @@ class FileBindTestCase(unittest.TestCase):
         host_file = "host.file"
         container_file = "#container.file"
 
-        fb = udocker.FileBind(mock_local, container_id)
-        fb.host_bind_dir = "/tmp"
-        fb.add(host_file, container_file)
+        fbind = udocker.FileBind(mock_local, container_id)
+        fbind.host_bind_dir = "/tmp"
+        fbind.add(host_file, container_file)
         self.assertTrue(mock_futil.return_value.remove.called)
         self.assertTrue(mock_futil.return_value.copyto.called)
 
@@ -2704,6 +2730,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_06__check_executable(self, mock_local, mock_getenv, mock_isfile,
                                   mock_readlink, mock_access, mock_msg):
+        # pylint: disable=W0612,W0613
         """Test ExecutionEngineCommon()._check_executable()."""
         self._init()
         mock_msg.level = 0
@@ -2736,6 +2763,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_07__run_load_metadata(self, mock_local, mock_getenv,
                                    mock_chkports, mock_cstruct):
+        # pylint: disable=W0612,W0613
         """Test ExecutionEngineCommon()._run_load_metadata()."""
         self._init()
         ex_eng = udocker.ExecutionEngineCommon(mock_local)
@@ -2894,6 +2922,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_11__create_user(self, mock_local, mock_nix, mock_msg,
                              mock_futil, mock_groups):
+        # pylint: disable=W0612,W0613
         """Test ExecutionEngineCommon()._create_user()."""
         self._init()
         mock_msg.level = 0
@@ -3031,6 +3060,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     @mock.patch('udocker.Config')
     @mock.patch('udocker.LocalRepository')
     def test_15__run_env_set(self, mock_local, mock_config):
+        # pylint: disable=W0612,W0613
         """Test ExecutionEngineCommon()._run_env_set()."""
         # self._init()
         ex_eng = udocker.ExecutionEngineCommon(mock_local)
@@ -3059,6 +3089,7 @@ class ExecutionEngineCommonTestCase(unittest.TestCase):
     def test_16__run_init(self, mock_local, mock_loadmeta, mock_setupuser,
                           mock_chkpaths, mock_chkexec, mock_chkvol,
                           mock_execmode):
+        # pylint: disable=W0612,W0613
         """Test ExecutionEngineCommon()._run_init()."""
         self._init()
         mock_local.get_container_name.return_value = "cname"
@@ -3140,6 +3171,7 @@ class PRootEngineTestCase(unittest.TestCase):
     @mock.patch('udocker.ExecutionEngineCommon')
     @mock.patch('udocker.LocalRepository')
     def test_01_init(self, mock_local, mock_exeng):
+        # pylint: disable=W0612,W0613
         """Test PRootEngine()."""
         self._init()
         prex = udocker.PRootEngine(mock_local)
@@ -3153,6 +3185,7 @@ class PRootEngineTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_03__select_proot(self, mock_local, mock_fimage, mock_execmode,
                               mock_config):
+        # pylint: disable=W0612,W0613
         """Test PRootEngine()._select_proot()."""
         self._init()
         udocker.Config.return_value.arch.return_value = "amd64"
@@ -3373,6 +3406,7 @@ class ContainerStructureTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_05__untar_layers(self, mock_local, mock_msg, mock_appwhite,
                               mock_call):
+        # pylint: disable=W0612,W0613
         """Test ContainerStructure()._untar_layers()."""
         self._init()
         mock_msg.level = 0
@@ -3604,6 +3638,7 @@ class DockerLocalFileAPITestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_05__copy_layer_to_repo(self, mock_local, mock_rename):
         """Test DockerLocalFileAPI()._copy_layer_to_repo()."""
+        # pylint: disable=W0612,W0613
         self._init()
         mock_local.layersdir = ""
         #
@@ -3736,6 +3771,7 @@ class DockerLocalFileAPITestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_09_load(self, mock_local, mock_msg, mock_exists, mock_futil,
                      mock_makedirs, mock_untar, mock_lstruct, mock_lrepo):
+        # pylint: disable=W0612,W0613
         """Test DockerLocalFileAPI().load()."""
         self._init()
         mock_msg.level = 0
@@ -3823,6 +3859,7 @@ class DockerLocalFileAPITestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_11_import_(self, mock_local, mock_msg, mock_exists, mock_futil,
                         mock_rename, mock_unique):
+        # pylint: disable=W0612,W0613
         """Test DockerLocalFileAPI().import_()."""
         self._init()
         mock_msg.level = 0
@@ -3956,6 +3993,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_03__check_imagespec(self, mock_local, mock_msg, mock_dioapi,
                                  mock_dlocapi, mock_ks, mock_cmdp):
+        # pylint: disable=W0612,W0613
         """Test Udocker()._check_imagespec()."""
         self._init()
         mock_msg.level = 0
@@ -3984,6 +4022,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_04_do_mkrepo(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp, mock_exists):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_mkrepo()."""
         self._init()
         mock_msg.level = 0
@@ -4021,6 +4060,7 @@ class UdockerTestCase(unittest.TestCase):
     def test_05_do_search(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp,
                           mock_print1, mock_print2, mock_rinput):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_search()."""
         self._init()
         mock_msg.level = 0
@@ -4082,6 +4122,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_06_do_load(self, mock_local, mock_msg, mock_dioapi,
                         mock_dlocapi, mock_ks, mock_cmdp):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_load()."""
         self._init()
         mock_msg.level = 0
@@ -4121,6 +4162,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_07_do_import(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_import()."""
         self._init()
         mock_msg.level = 0
@@ -4171,6 +4213,7 @@ class UdockerTestCase(unittest.TestCase):
     def test_08_do_login(self, mock_local, mock_msg, mock_dioapi,
                          mock_dlocapi, mock_ks, mock_cmdp,
                          mock_rinput, mock_gpass):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_login()."""
         self._init()
         mock_msg.level = 0
@@ -4213,6 +4256,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_09_do_logout(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_logout()."""
         self._init()
         mock_msg.level = 0
@@ -4247,6 +4291,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_10_do_pull(self, mock_local, mock_msg, mock_dioapi,
                         mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_pull()."""
         self._init()
         mock_msg.level = 0
@@ -4289,6 +4334,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_11_do_create(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp, mock_create):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_create()."""
         self._init()
         mock_msg.level = 0
@@ -4371,6 +4417,7 @@ class UdockerTestCase(unittest.TestCase):
     def test_15_do_run(self, mock_realpath, mock_local,
                        mock_msg, mock_dioapi, mock_dlocapi,
                        mock_ks, mock_cmdp, mock_eng, mock_getopt):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_run()."""
         self._init()
         mock_msg.level = 0
@@ -4466,6 +4513,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_16_do_images(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_images()."""
         self._init()
         mock_msg.level = 0
@@ -4510,6 +4558,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_17_do_ps(self, mock_local, mock_msg, mock_dioapi,
                       mock_dlocapi, mock_ks, mock_cmdp):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_ps()."""
         self._init()
         mock_msg.level = 0
@@ -4544,6 +4593,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_18_do_rm(self, mock_local, mock_msg, mock_dioapi,
                       mock_dlocapi, mock_ks, mock_cmdp):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_rm()."""
         self._init()
         mock_msg.level = 0
@@ -4592,6 +4642,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_19_do_rmi(self, mock_local, mock_msg, mock_dioapi,
                        mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_rmi()."""
         self._init()
         mock_msg.level = 0
@@ -4635,6 +4686,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_20_do_protect(self, mock_local, mock_msg, mock_dioapi,
                            mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_protect()."""
         self._init()
         mock_msg.level = 0
@@ -4691,6 +4743,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_21_do_unprotect(self, mock_local, mock_msg, mock_dioapi,
                              mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_unprotect()."""
         self._init()
         mock_msg.level = 0
@@ -4739,6 +4792,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_22_do_name(self, mock_local, mock_msg, mock_dioapi,
                         mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_name()."""
         self._init()
         mock_msg.level = 0
@@ -4785,6 +4839,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_22_do_rmname(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_rmname()."""
         self._init()
         mock_msg.level = 0
@@ -4824,6 +4879,7 @@ class UdockerTestCase(unittest.TestCase):
     def test_23_do_inspect(self, mock_local, mock_msg, mock_dioapi,
                            mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg,
                            mock_cstruct, mock_json):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_inspect()."""
         self._init()
         mock_msg.level = 0
@@ -4872,6 +4928,7 @@ class UdockerTestCase(unittest.TestCase):
     @mock.patch('udocker.LocalRepository')
     def test_24_do_verify(self, mock_local, mock_msg, mock_dioapi,
                           mock_dlocapi, mock_ks, mock_cmdp, mock_chkimg):
+        # pylint: disable=W0612,W0613
         """Test Udocker().do_verify()."""
         self._init()
         mock_msg.level = 0
